@@ -1,0 +1,66 @@
+========================================================================
+ESTÚDIO DE GRAVAÇÃO ENGAJAMENTO PRO - GUIA DE INSTALAÇÃO AUTÔNOMA (.ZIP)
+========================================================================
+
+Este arquivo compactado contém tudo o que você precisa para utilizar o
+gravador de vídeo com moldura em qualquer smartphone de forma independente.
+
+------------------------------------------------------------------------
+ARQUIVOS INCLUSOS:
+------------------------------------------------------------------------
+1. index.html
+   O aplicativo gravador completo. Suas artes de parte superior, parte inferior
+   ou tela cheia são endereçadas e carregadas a partir da pasta "assets/".
+
+2. assets/
+   Pasta contendo as artes transparentes (.png ou .webm) que você subiu no editor
+   e que são endereçadas de forma limpa pelo gravador.
+   - arte_superior.png ou .webm (Margem Superior)
+   - arte_inferior.png ou .webm (Margem Inferior)
+   - arte_tela_cheia.png ou .webm (Fundo / Tela Cheia)
+
+------------------------------------------------------------------------
+🚨 CRÍTICO: REQUISITO DE SEGURANÇA DOS CELULARES
+------------------------------------------------------------------------
+Os sistemas operacionais mobile (iOS e Android) e seus respectivos navegadores
+(Safari e Chrome) exigem OBRIGATORIAMENTE conexões criptografadas ("HTTPS")
+ou "localhost" para permitir que uma página acesse a câmera ou microfone.
+
+-> Se você apenas copiar "index.html" para o celular por USB e
+   abrir o arquivo diretamente (link tipo "file:///..."), a câmera NÃO IRÁ
+   ABRIR. O botão de permissão é mostrado mas o navegador do celular bloqueia
+   a ativação da câmera por não ser um endereço HTTPS.
+
+------------------------------------------------------------------------
+COMO RODAR NO CELULAR DO CLIENTE (MÉTODOS RÁPIDOS E GRÁTIS):
+------------------------------------------------------------------------
+
+MÉTODO 1: HOSPEDAGEM PORTÁTIL GRATUITA (MUITO RECOMENDADO)
+1. Faça o upload gratuito do arquivo "index.html" para o
+   GitHub Pages (grátis), Vercel, Netlify ou Firebase Hosting.
+2. Essas plataformas criarão instantaneamente um link seguro HTTPS para você
+   (ex: https://seu-site.github.io ou https://seu-site.vercel.app).
+3. Abra esse endereço https no navegador do celular. A câmera funcionará
+   agora de forma livre, fluida e com alto desempenho!
+
+MÉTODO 2: REDIRECIONAMENTO DE PORTA USB (LOCAL PARA ANDROID)
+1. Ative a "Depuração USB" nas opções de desenvolvedor do seu celular Android.
+2. Conecte o celular com o cabo USB ao seu computador.
+3. No computador, abra a página "chrome://inspect" no navegador Chrome.
+4. Ative a caixa "Port forwarding" (Redirecionamento de porta) para mapear
+   a porta local do seu computador (ex: mapear porta 5500 para localhost:5500).
+5. No celular Android, acesse "http://localhost:5500". O Chrome trata
+   o endereço localhost USB como seguro e libera a câmera do aparelho na hora!
+
+MÉTODO 3: TÚNEL COM NGROK (PARA COMPARTILHAR EXCEPCIONALMENTE RÁPIDO)
+1. Rode um servidor web local na sua máquina na pasta do projeto (ex: porta 5500).
+2. Execute no seu terminal: ngrok http 5500
+3. Um túnel público seguro HTTPS será criado temporariamente pelo Ngrok.
+4. Digite o endereço https fornecido pelo painel do Ngrok no celular e use o aplicativo!
+
+------------------------------------------------------------------------
+DETALHES DO DESIGN DO PROJETO:
+- Área Superior Decorativa: 35% de altura
+- Área Inferior Decorativa: 35% de altura
+- Área de Tela Cheia: 100% de altura (quando aplicável)
+- Janela Central de Vídeo: 9:16 vertical adaptativa, otimizada para feed e stories.

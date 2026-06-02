@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gravador Engajamento - Câmera Frontal</title>
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #090d16;
+            color: #f1f5f9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Header bar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3.5">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <div class="h-2.5 w-2.5 rounded-full bg-emerald-550 mr-1" id="headerStatusDot"></div>
+                <h1 id="headerAppTitle" class="text-xs font-bold tracking-widest text-slate-400 uppercase font-mono">MOSTRE SEU ENGAJAMENTO</h1>
+                <button id="btnTakePhoto" class="hidden bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full transition-all flex items-center gap-1 shadow-lg shadow-indigo-600/15">
+                    📸 <span>TIRAR FOTO</span>
+                </button>
+            </div>
+            <!-- Header-integrated Start/Stop recording button (replaces "MÓVEL COMPATÍVEL") -->
+            <button id="btnHeaderTriggerRecording" class="hidden bg-red-600 hover:bg-red-700 active:scale-95 text-white text-[11px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full transition-all flex items-center gap-1.5 shadow-lg shadow-red-600/20">
+                <span id="headerTriggerIcon" class="h-2 w-2 rounded-full bg-white block"></span>
+                <span id="headerTriggerText">GRAVAR VÍDEO</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-md w-full mx-auto px-4 py-6 flex flex-col justify-between">
+        
+        <!-- Status Notification Box -->
+        <div id="statusNotification" class="mb-4 bg-blue-950/75 border border-blue-800 px-4 py-3 rounded-xl flex items-start space-x-3 hidden">
+            <span class="text-blue-400 text-lg mt-0.5">ℹ️</span>
+            <div class="text-xs text-blue-200" id="statusMessageText"></div>
+        </div>
+
+        <div id="permissionsOverlay" class="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl text-center space-y-4 shadow-xl">
+            <div class="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center mx-auto text-indigo-400 text-2xl">
+                📹
+            </div>
+            <h3 class="text-base font-bold text-white">Autorização de Câmera & Áudio</h3>
+            <p class="text-xs text-slate-400">
+                Este aplicativo utiliza a câmera frontal e o microfone do celular para gravar seu depoimento aplicando as artes nas margens superior (35%) e inferior (35%).
+            </p>
+            <button id="btnRequestCamera" class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 transition text-white py-3 px-4 rounded-xl font-medium text-sm">
+                Permitir Câmera e Áudio
+            </button>
+            <div class="text-[11px] text-slate-500">
+                As gravações são salvas localmente no seu dispositivo e não passam por nenhum servidor externo.
+            </div>
+        </div>
+
+        <!-- Standalone Live composition section -->
+        <div id="captureArea" class="hidden relative w-full aspect-[9/16] bg-black rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-800">
+            <!-- 3s Countdown Viewport overlay -->
+            <div id="countdownOverlay" class="absolute inset-0 bg-black/90 flex flex-col items-center justify-center z-30 hidden">
+                <div id="countdownNumber" class="text-8xl font-black text-indigo-500 animate-ping">3</div>
+                <p class="text-sm font-semibold tracking-widest text-slate-400 uppercase mt-4">Prepare-se para o vídeo...</p>
+            </div>
+
+            <!-- Mirrored Hidden Video component (non-hidden offscreen for iOS Safari render refresh compatibility) -->
+            <video id="liveVideo" autoplay playsinline muted style="position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0.01; pointer-events: none;"></video>
+            
+            <!-- Target Canvas -->
+            <canvas id="compositeCanvas" class="w-full h-full object-cover block"></canvas>
+
+            <!-- Status Indicator Overlay Badge -->
+            <div id="statusBadge" class="absolute top-4 left-4 inline-flex items-center space-x-1.5 bg-red-600 text-[10px] font-bold uppercase py-1 px-2.5 rounded-full text-white tracking-widest shadow-lg hidden">
+                <span class="h-2 w-2 rounded-full bg-white animate-pulse"></span>
+                <span>GRAVANDO</span>
+            </div>
+
+            <!-- Real-time Recording Counter Badge -->
+            <div id="timerBadge" class="absolute top-4 right-4 bg-slate-950/80 backdrop-blur-sm text-xs font-mono py-1 px-2.5 rounded-full text-white tracking-wider flex items-center space-x-1 border border-slate-800">
+                <span class="text-red-500 animate-pulse">●</span>
+                <span id="recordingTimer">00:00</span>
+                <span class="text-slate-500 font-bold">/ 01:20</span>
+            </div>
+        </div>
+
+        <!-- Recorded Video Preview Section (For direct viewing & Gallery Saving) -->
+        <div id="recordedPreviewSection" class="hidden mt-6 p-5 bg-slate-900 border border-emerald-500/30 rounded-2xl space-y-4 shadow-xl">
+             <div class="text-center">
+                 <span class="inline-flex items-center gap-1.5 text-[10px] bg-emerald-950/80 border border-emerald-500/40 font-bold uppercase py-1 px-3.5 rounded-full text-emerald-400 tracking-widest font-mono">
+                     🟢 Gravação Pronta!
+                 </span>
+             </div>
+             
+             <!-- Aspect ratio correct visual feedback player -->
+             <div class="rounded-xl overflow-hidden border border-slate-800 bg-black aspect-[9/16] max-h-80 mx-auto shadow-inner relative">
+                 <video id="recordedVideoPlayer" controls class="w-full h-full object-cover"></video>
+             </div>
+
+             <!-- Web Share / Direct Save & Backup File Download triggers -->
+             <div class="space-y-2.5">
+                 <button id="btnSaveToPhone" class="w-full bg-blue-600 hover:bg-blue-500 active:scale-97 transition-all text-white py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-blue-500/20">
+                     <span>📥 SALVAR NO CELULAR</span>
+                 </button>
+                 <button id="btnSaveToGallery" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-97 transition-all text-white py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/20">
+                     <span>📱 SALVAR NO iOS</span>
+                 </button>
+                 <button id="btnResetAndRecordAgain" class="w-full bg-red-500 hover:bg-red-400 active:scale-97 transition-all text-white py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-red-500/20">
+                     <span>🔄 GRAVAR NOVAMENTE</span>
+                 </button>
+                 <button id="btnDownloadFile" class="w-full bg-slate-950 hover:bg-slate-850 active:scale-97 transition-all text-slate-300 py-2.5 px-4 rounded-xl font-semibold text-xs flex items-center justify-center space-x-2 border border-slate-800">
+                     <span>📥 Baixar Arquivo de Vídeo</span>
+                 </button>
+             </div>
+             
+
+        </div>
+
+        <!-- Controls Board -->
+        <div id="controlsBoard" class="hidden mt-6 space-y-4">
+            <!-- Camera & Audio Status checks -->
+            <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between text-xs">
+                <div class="flex items-center space-x-2">
+                    <span class="text-emerald-500" id="audioLedIndicator">🟢</span>
+                    <span class="text-slate-300 font-medium font-mono text-[11px]">Nível de Voz:</span>
+                </div>
+                <div class="w-24 bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div id="audioLevelMeter" class="bg-emerald-500 h-full transition-all duration-75" style="width: 0%"></div>
+                </div>
+                <button id="btnToggleMirror" class="bg-slate-800 text-[11px] text-slate-300 px-2 py-1 rounded border border-slate-700 hover:bg-slate-700">
+                    Espelhar: Ativo
+                </button>
+            </div>
+
+            <!-- Available Video devices cycler -->
+            <div class="bg-indigo-950/30 border border-slate-800/80 rounded-xl p-3 flex flex-col space-y-1.5 hidden" id="cameraSelectorBox">
+                <label class="text-[10px] text-slate-400 font-bold tracking-wider uppercase">Selecione Outra Câmera:</label>
+                <select id="videoSelect" class="bg-slate-950 text-slate-300 rounded border border-slate-800 text-xs py-1.5 px-2 outline-none w-full">
+                </select>
+            </div>
+
+            <!-- Performance Telemetry HUD for WebM/PNG overlay renderer -->
+            <div id="perfTelemetryHUD" class="bg-slate-900/50 rounded-xl p-3 border border-slate-800/80 flex flex-col space-y-1.5 text-[11px] font-mono text-slate-400">
+                <div class="flex items-center justify-between">
+                    <span>Performance do Layout:</span>
+                    <span id="perfTelemetryStatus" class="font-bold text-teal-400">Medindo...</span>
+                </div>
+                <div id="perfTelemetryDetails" class="text-[10px] text-slate-500 leading-normal">
+                    Medindo frame rendering rate de animações...
+                </div>
+            </div>
+
+            <!-- Dynamic instructions and status indicators -->
+            <div class="bg-indigo-950/20 border border-slate-850 rounded-xl p-3.5 text-center">
+                <span class="inline-flex h-2 w-2 rounded-full bg-red-550 animate-ping mr-1.5"></span>
+                <span class="text-xs text-slate-300 font-medium">
+                    Use o botão <strong class="text-red-450 uppercase tracking-widest font-mono">GRAVAR VÍDEO</strong> no cabeçalho superior do aplicativo para gerenciar seu depoimento.
+                </span>
+                <div class="text-[10px] text-slate-500 mt-1.5">
+                    O download começará automaticamente logo após você pressionar o botão de parar.
+                </div>
+            </div>
+        </div>
+
+        <!-- Explainer Instructions Footer -->
+        <footer class="mt-8 pt-4 border-t border-slate-900 text-center space-y-1.5">
+            <div class="text-[11px] text-indigo-400 font-bold uppercase tracking-wider">Como funciona no celular?</div>
+            <p class="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
+                1. Toque em "Permitir Câmera e Áudio".<br>
+                2. Use o celular na posição vertical.<br>
+                3. Aguarde os 3 segundos de contagem regressiva.<br>
+                4. O vídeo final com o layout aprovado (35% superior/inferior) será salvo nas suas fotos/arquivos diretamente!
+            </p>
+        </footer>
+
+        <!-- Beautiful custom completion modal replacement of default alert -->
+        <div id="completionModal" class="fixed inset-0 flex items-center justify-center bg-slate-950/85 backdrop-blur-sm z-50 p-4 hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-5 shadow-2xl text-center">
+                <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto text-3xl font-bold">
+                    ✓
+                </div>
+                <div class="space-y-1">
+                    <h3 class="text-base font-bold text-white uppercase tracking-wider font-mono">Gravação Concluída!</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Assista ao seu depoimento logo abaixo e clique em <strong>'SALVAR NO iOS'</strong> para guardá-lo no celular!
+                    </p>
+                </div>
+                <button id="btnModalClose" class="w-full bg-slate-800 hover:bg-slate-700 active:scale-97 text-xs font-bold text-white py-3 px-4 rounded-xl transition border border-slate-700">
+                    Fechar
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script Layer -->
+    <script>
+        // Paths pointing to files under the assets folder in the export package
+        const TOP_OVERLAY_PATH = "./assets/arte_superior.webm";
+        const BOTTOM_OVERLAY_PATH = "./assets/arte_inferior.webm";
+        const FULLSCREEN_OVERLAY_PATH = "";
+        const TOP_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
+        const BOTTOM_ADJUSTMENT = {"fitMode":"contain","offsetY":-4,"offsetX":-4,"scale":1.3};
+        const FULLSCREEN_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
+
+        // UI State variables
+        let isMirrored = true;
+        let isRecordingNow = false;
+        let countdownTimer = null;
+        let recordingSeconds = 0;
+        let recordingInterval = null;
+         
+        let videoStream = null;
+        let animationFrameId = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let currentRecordedUrl = null;
+
+        // Elements
+        const liveVideo = document.getElementById('liveVideo');
+        const canvas = document.getElementById('compositeCanvas');
+        const ctx = canvas.getContext('2d');
+        const permissionsOverlay = document.getElementById('permissionsOverlay');
+        const captureArea = document.getElementById('captureArea');
+        const controlsBoard = document.getElementById('controlsBoard');
+        const statusBadge = document.getElementById('statusBadge');
+        const recordingTimer = document.getElementById('recordingTimer');
+        const videoSelect = document.getElementById('videoSelect');
+        const cameraSelectorBox = document.getElementById('cameraSelectorBox');
+        
+        const triggerText = document.getElementById('headerTriggerText');
+        const triggerIcon = document.getElementById('headerTriggerIcon');
+        const audioLevelMeter = document.getElementById('audioLevelMeter');
+        const btnToggleMirror = document.getElementById('btnToggleMirror');
+
+        // Overlay pre-load Image references
+        let topImgElement = null;
+        let bottomImgElement = null;
+        let fullScreenImgElement = null;
+
+        // Overlay Video players (WebM)
+        let topVideoElement = null;
+        let bottomVideoElement = null;
+        let fullScreenVideoElement = null;
+
+        const isSafariOrIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+                              /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        let tempVideoCanvas = null;
+        let tempVideoCtx = null;
+
+        function updatePerformanceHUD() {
+            const perfHUD = document.getElementById('perfTelemetryHUD');
+            const perfStatus = document.getElementById('perfTelemetryStatus');
+            const perfDetails = document.getElementById('perfTelemetryDetails');
+            if (!perfHUD) return;
+            
+            let detailsArr = [];
+            
+            if (topVideoElement) {
+                detailsArr.push("• <b>Superior</b>: WebM Animado (Nativo)");
+            }
+            if (bottomVideoElement) {
+                detailsArr.push("• <b>Inferior</b>: WebM Animado (Nativo)");
+            }
+            if (fullScreenVideoElement) {
+                detailsArr.push("• <b>Tela Cheia</b>: WebM Animado (Nativo)");
+            }
+            
+            if (detailsArr.length > 0) {
+                perfStatus.textContent = "🟢 Vídeo WebM Ativo";
+                perfStatus.className = "font-bold text-emerald-400";
+                perfDetails.innerHTML = detailsArr.join('<br>') + "<br><span class='text-[9px] text-slate-600 mt-1 block'>Reprodução de WebM com canal alfa acelerado via hardware.</span>";
+            } else if (TOP_OVERLAY_PATH || BOTTOM_OVERLAY_PATH || FULLSCREEN_OVERLAY_PATH) {
+                perfStatus.textContent = "🟢 Imagens Estáticas";
+                perfStatus.className = "font-bold text-slate-400";
+                perfDetails.textContent = "Utilizando apenas imagens estáticas PNG, ótimo desempenho (0% CPU de decodificação).";
+            } else {
+                perfStatus.textContent = "⚪ Aguardando Mídia";
+                perfStatus.className = "font-bold text-slate-500";
+                perfDetails.textContent = "Nenhuma arte sobreposta detectada.";
+            }
+        }
+
+        function playAllOverlayVideos() {
+            if (topVideoElement && topVideoElement.paused) {
+                topVideoElement.play().catch(e => console.log('top resume play err:', e));
+            }
+            if (bottomVideoElement && bottomVideoElement.paused) {
+                bottomVideoElement.play().catch(e => console.log('bottom resume play err:', e));
+            }
+            if (fullScreenVideoElement && fullScreenVideoElement.paused) {
+                fullScreenVideoElement.play().catch(e => console.log('fullscreen resume play err:', e));
+            }
+        }
+
+        async function initOverlayAssets() {
+            if (TOP_OVERLAY_PATH) {
+                if (TOP_OVERLAY_PATH.endsWith('.webm')) {
+                    const video = document.createElement('video');
+                    video.style.position = 'fixed';
+                    video.style.top = '0';
+                    video.style.left = '0';
+                    video.style.width = '100vw';
+                    video.style.height = '100vh';
+                    video.style.opacity = '0.002';
+                    video.style.zIndex = '-9999';
+                    video.style.pointerEvents = 'none';
+                    video.src = TOP_OVERLAY_PATH;
+                    video.muted = true;
+                    video.loop = true;
+                    video.playsInline = true;
+                    video.setAttribute('webkit-playsinline', 'true');
+                    video.setAttribute('playsinline', 'true');
+                    video.setAttribute('muted', 'true');
+                    document.body.appendChild(video);
+                    
+                    // Assign immediately to allow user gestures to play it on iOS Safari
+                    topVideoElement = video;
+                    
+                    video.onloadeddata = () => {
+                        updatePerformanceHUD();
+                    };
+                    video.onloadedmetadata = () => {
+                        updatePerformanceHUD();
+                    };
+                    video.play().catch(e => console.log('top draft auto blocked:', e));
+                } else {
+                    topImgElement = new Image();
+                    topImgElement.src = TOP_OVERLAY_PATH;
+                    topImgElement.onload = () => updatePerformanceHUD();
+                }
+            }
+            if (BOTTOM_OVERLAY_PATH) {
+                if (BOTTOM_OVERLAY_PATH.endsWith('.webm')) {
+                    const video = document.createElement('video');
+                    video.style.position = 'fixed';
+                    video.style.top = '0';
+                    video.style.left = '0';
+                    video.style.width = '100vw';
+                    video.style.height = '100vh';
+                    video.style.opacity = '0.002';
+                    video.style.zIndex = '-9999';
+                    video.style.pointerEvents = 'none';
+                    video.src = BOTTOM_OVERLAY_PATH;
+                    video.muted = true;
+                    video.loop = true;
+                    video.playsInline = true;
+                    video.setAttribute('webkit-playsinline', 'true');
+                    video.setAttribute('playsinline', 'true');
+                    video.setAttribute('muted', 'true');
+                    document.body.appendChild(video);
+                    
+                    // Assign immediately to allow user gestures to play it on iOS Safari
+                    bottomVideoElement = video;
+                    
+                    video.onloadeddata = () => {
+                        updatePerformanceHUD();
+                    };
+                    video.onloadedmetadata = () => {
+                        updatePerformanceHUD();
+                    };
+                    video.play().catch(e => console.log('bottom draft auto blocked:', e));
+                } else {
+                    bottomImgElement = new Image();
+                    bottomImgElement.src = BOTTOM_OVERLAY_PATH;
+                    bottomImgElement.onload = () => updatePerformanceHUD();
+                }
+            }
+            if (FULLSCREEN_OVERLAY_PATH) {
+                if (FULLSCREEN_OVERLAY_PATH.endsWith('.webm')) {
+                    const video = document.createElement('video');
+                    video.style.position = 'fixed';
+                    video.style.top = '0';
+                    video.style.left = '0';
+                    video.style.width = '100vw';
+                    video.style.height = '100vh';
+                    video.style.opacity = '0.002';
+                    video.style.zIndex = '-9999';
+                    video.style.pointerEvents = 'none';
+                    video.src = FULLSCREEN_OVERLAY_PATH;
+                    video.muted = true;
+                    video.loop = true;
+                    video.playsInline = true;
+                    video.setAttribute('webkit-playsinline', 'true');
+                    video.setAttribute('playsinline', 'true');
+                    video.setAttribute('muted', 'true');
+                    document.body.appendChild(video);
+                    
+                    // Assign immediately to allow user gestures to play it on iOS Safari
+                    fullScreenVideoElement = video;
+                    
+                    video.onloadeddata = () => {
+                        updatePerformanceHUD();
+                    };
+                    video.onloadedmetadata = () => {
+                        updatePerformanceHUD();
+                    };
+                    video.play().catch(e => console.log('fullscreen draft auto blocked:', e));
+                } else {
+                    fullScreenImgElement = new Image();
+                    fullScreenImgElement.src = FULLSCREEN_OVERLAY_PATH;
+                    fullScreenImgElement.onload = () => updatePerformanceHUD();
+                }
+            }
+        }
+
+        // Initialize immediately on parse
+        initOverlayAssets();
+        updatePerformanceHUD();
+
+        // Listen for direct clicks and touches as cascading gestures to trigger muted video playback on iOS Safari
+        window.addEventListener('click', playAllOverlayVideos, { passive: true });
+        window.addEventListener('touchstart', playAllOverlayVideos, { passive: true });
+
+        // Notification handler
+        function showNotification(text) {
+            const box = document.getElementById('statusNotification');
+            const target = document.getElementById('statusMessageText');
+            target.textContent = text;
+            box.classList.remove('hidden');
+        }
+
+        // Request cameras and mics accesses with cascading fallback strategies
+        async function requestCameraAccess() {
+            // Unlocks any loaded WebM overlay videos in iOS WebKit synchronously on user click
+            playAllOverlayVideos();
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("Atenção de Segurança:\n\nA câmera e o microfone do celular só podem ser acessados através de conexões seguras (HTTPS) ou LOCALHOST por regras de privacidade dos navegadores.\n\nCaso esteja testando em rede local (ex: http://192.168...), acesse usando HTTPS ou faça upload do arquivo em algum servidor seguro (como GitHub Pages, Vercel ou Firebase Hosting), ou confira o arquivo LEIA-ME.txt no ZIP.");
+                showNotification("Acesso bloqueado: Câmera requer conexão segura HTTPS no celular.");
+                return;
+            }
+
+            // Sync setup of video attributes (safely with no await!) to keep gesture context valid
+            liveVideo.setAttribute('autoplay', 'true');
+            liveVideo.setAttribute('playsinline', 'true');
+            liveVideo.setAttribute('muted', 'true');
+            liveVideo.muted = true;
+            liveVideo.playsInline = true;
+
+            try {
+                // Try standard compatible facingMode and dual tracks to prevent multi-call locking
+                videoStream = await navigator.mediaDevices.getUserMedia({
+                    video: { 
+                        facingMode: "user",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: true
+                });
+                
+                const audioLedIndicator = document.getElementById('audioLedIndicator');
+                if (audioLedIndicator) audioLedIndicator.textContent = "🟢";
+                
+                await initStreamSuccess(videoStream);
+                return;
+            } catch (err1) {
+                console.warn("Estratégia 1 (Câmera Frontal + Áudio) falhou, tentando Estratégia 2 Câmera Simples...", err1);
+                
+                try {
+                    // Try standard camera only
+                    videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    
+                    try {
+                        const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        const audioTrack = audioStream.getAudioTracks()[0];
+                        if (audioTrack) videoStream.addTrack(audioTrack);
+                        const audioLedIndicator = document.getElementById('audioLedIndicator');
+                        if (audioLedIndicator) audioLedIndicator.textContent = "🟢";
+                    } catch (e) {
+                        const audioLedIndicator = document.getElementById('audioLedIndicator');
+                        if (audioLedIndicator) audioLedIndicator.textContent = "🔴 (Sem Som)";
+                    }
+
+                    await initStreamSuccess(videoStream);
+                    return;
+                } catch (err2) {
+                    console.error("Todas as estratégias de inicialização de mídia falharam:", err2);
+                    alert("Impossível iniciar câmera: " + err2.message + "\n\nCertifique-se de:\n1. Estar acessando via protocolo seguro HTTPS (ex: https://...)\n2. Ter concedido as permissões de câmera nas configurações de privacidade do Safari ou Chrome.");
+                    showNotification("Acesso negado para câmera/áudio.");
+                }
+            }
+        }
+
+        async function initStreamSuccess(stream) {
+            liveVideo.srcObject = stream;
+            
+            // Critical on mobile browsers: force trigger play
+            try {
+                await liveVideo.play();
+            } catch (e) {
+                console.warn('Falha no autoplay, reprodução aguardará interação:', e);
+            }
+
+            // Switch visible views
+            permissionsOverlay.classList.add('hidden');
+            captureArea.classList.remove('hidden');
+            controlsBoard.classList.remove('hidden');
+            
+            const headerRecordBtn = document.getElementById('btnHeaderTriggerRecording');
+            if (headerRecordBtn) headerRecordBtn.classList.remove('hidden');
+            const takePhotoBtn = document.getElementById('btnTakePhoto');
+            if (takePhotoBtn) takePhotoBtn.classList.remove('hidden');
+
+            try {
+                // Enumerate multi cameras of celular
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(d => d.kind === 'videoinput');
+                
+                if (videoDevices.length > 1) {
+                    cameraSelectorBox.classList.remove('hidden');
+                    videoSelect.innerHTML = '';
+                    videoDevices.forEach(device => {
+                        const opt = document.createElement('option');
+                        opt.value = device.deviceId;
+                        opt.textContent = device.label || 'Câmera ID ' + (videoSelect.children.length + 1);
+                        videoSelect.appendChild(opt);
+                    });
+                }
+            } catch (errEnumerate) {
+                console.log("Falha ao enumerar dispositivos:", errEnumerate);
+            }
+
+            // Audio level meter start
+            startAudioLevelMeter(stream);
+
+            // Start Dynamic canvas draw loop
+            resizeCanvas();
+            startDrawingLoop();
+        }
+
+        // Set dimensions based on standard recording quality 
+        function resizeCanvas() {
+            // High fidelity resolution (1080x1920 portrait standard)
+            canvas.width = 1080;
+            canvas.height = 1920;
+        }
+
+        function startDrawingLoop() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            function drawFrame() {
+                if (!ctx) return;
+                
+                const width = canvas.width;
+                const height = canvas.height;
+
+                // Solid canvas background to prevent black margins under PNG transparency in various encoders
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, width, height);
+
+                // 1. Live video frame
+                ctx.save();
+                if (isMirrored) {
+                    ctx.translate(width, 0);
+                    ctx.scale(-1, 1);
+                }
+
+                // Draw maintaining aspect ratio, filling the whole 9:16 portrait canvas (object-cover style)
+                const videoWidth = liveVideo.videoWidth || 640;
+                const videoHeight = liveVideo.videoHeight || 480;
+                const videoRatio = videoWidth / videoHeight;
+                const canvasRatio = width / height;
+
+                let drawW = width;
+                let drawH = height;
+                let offsetX = 0;
+                let offsetY = 0;
+
+                if (videoRatio > canvasRatio) {
+                    // Video is wider than canvas ratio -> fit height, crop horizontal sides
+                    drawW = height * videoRatio;
+                    offsetX = (width - drawW) / 2;
+                } else {
+                    // Video is taller than canvas ratio -> fit width, crop vertical ends
+                    drawH = width / videoRatio;
+                    offsetY = (height - drawH) / 2;
+                }
+
+                ctx.drawImage(liveVideo, offsetX, offsetY, drawW, drawH);
+                ctx.restore();
+
+                // 2. Overlay Top (exactly 35% height)
+                const topOverlayHeight = height * 0.35;
+                if (topVideoElement) {
+                    drawAdjustedImage(ctx, topVideoElement, 0, 0, width, topOverlayHeight, TOP_ADJUSTMENT);
+                } else if (topImgElement && topImgElement.complete) {
+                    drawAdjustedImage(ctx, topImgElement, 0, 0, width, topOverlayHeight, TOP_ADJUSTMENT);
+                }
+
+                // 3. Overlay Bottom (exactly 35% height)
+                const bottomOverlayHeight = height * 0.35;
+                const bottomOverlayY = height - bottomOverlayHeight;
+                if (bottomVideoElement) {
+                    drawAdjustedImage(ctx, bottomVideoElement, 0, bottomOverlayY, width, bottomOverlayHeight, BOTTOM_ADJUSTMENT);
+                } else if (bottomImgElement && bottomImgElement.complete) {
+                    drawAdjustedImage(ctx, bottomImgElement, 0, bottomOverlayY, width, bottomOverlayHeight, BOTTOM_ADJUSTMENT);
+                }
+
+                // 4. Overlay Full Screen (100% height)
+                if (fullScreenVideoElement) {
+                    drawAdjustedImage(ctx, fullScreenVideoElement, 0, 0, width, height, FULLSCREEN_ADJUSTMENT);
+                } else if (fullScreenImgElement && fullScreenImgElement.complete) {
+                    drawAdjustedImage(ctx, fullScreenImgElement, 0, 0, width, height, FULLSCREEN_ADJUSTMENT);
+                }
+
+                animationFrameId = requestAnimationFrame(drawFrame);
+            }
+            animationFrameId = requestAnimationFrame(drawFrame);
+        }
+
+        // Helper to draw custom PNGs or WebMs inside 35% box respecting align, scale, and fit mode adjustments
+        function drawAdjustedImage(ctx, img, boxX, boxY, boxW, boxH, adjustment) {
+            if (!img) return;
+            const isVideo = img instanceof HTMLVideoElement;
+            if (isVideo && (img.videoWidth === 0 || img.videoHeight === 0)) {
+                return; // Guard to prevent division by zero or NaN drawing before the overlay WebM fully loads on iOS
+            }
+            const fitMode = adjustment.fitMode || 'stretch';
+            const offsetY = adjustment.offsetY || 0;
+            const offsetX = adjustment.offsetX || 0;
+            const scale = adjustment.scale || 1;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(boxX, boxY, boxW, boxH);
+            ctx.clip();
+
+            const imgW = isVideo ? img.videoWidth : (img.width || 1);
+            const imgH = isVideo ? img.videoHeight : (img.height || 1);
+            const imgRatio = imgW / imgH;
+            const boxRatio = boxW / boxH;
+
+            let drawW = boxW;
+            let drawH = boxH;
+            let drawX = boxX;
+            let drawY = boxY;
+
+            if (fitMode === 'stretch') {
+                drawW = boxW * scale;
+                drawH = boxH * scale;
+                drawX = boxX + (boxW - drawW) / 2;
+                drawY = boxY + (boxH - drawH) / 2;
+            } else if (fitMode === 'contain') {
+                if (imgRatio > boxRatio) {
+                    drawW = boxW;
+                    drawH = boxW / imgRatio;
+                } else {
+                    drawH = boxH;
+                    drawW = boxH * imgRatio;
+                }
+                drawW *= scale;
+                drawH *= scale;
+                drawX = boxX + (boxW - drawW) / 2;
+                drawY = boxY + (boxH - drawH) / 2;
+            } else { // 'cover'
+                if (imgRatio > boxRatio) {
+                    drawH = boxH;
+                    drawW = boxH * imgRatio;
+                } else {
+                    drawW = boxW;
+                    drawH = boxW / imgRatio;
+                }
+                drawW *= scale;
+                drawH *= scale;
+                drawX = boxX + (boxW - drawW) / 2;
+                drawY = boxY + (boxH - drawH) / 2;
+            }
+
+            const pixelOffset = (offsetY / 100) * boxH;
+            drawY += pixelOffset;
+
+            const pixelOffsetX = (offsetX / 100) * boxW;
+            drawX += pixelOffsetX;
+
+            if (isVideo && isSafariOrIOS) {
+                if (!tempVideoCanvas) {
+                    tempVideoCanvas = document.createElement('canvas');
+                    tempVideoCtx = tempVideoCanvas.getContext('2d');
+                }
+                const w = Math.ceil(drawW) || 1;
+                const h = Math.ceil(drawH) || 1;
+                if (tempVideoCanvas.width !== w || tempVideoCanvas.height !== h) {
+                    tempVideoCanvas.width = w;
+                    tempVideoCanvas.height = h;
+                }
+                if (tempVideoCtx) {
+                    // Activate smooth high-quality subpixel drawing configurations
+                    tempVideoCtx.imageSmoothingEnabled = true;
+                    tempVideoCtx.imageSmoothingQuality = 'high';
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+
+                    tempVideoCtx.clearRect(0, 0, w, h);
+                    tempVideoCtx.drawImage(img, 0, 0, w, h);
+                    const imgData = tempVideoCtx.getImageData(0, 0, w, h);
+                    const data = imgData.data;
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        const maxVal = r > g ? (r > b ? r : b) : (g > b ? g : b);
+                        
+                        // Wide boundary smoothing selection window to fade borders and delete compression outlines
+                        if (maxVal < 48) {
+                            if (maxVal <= 4) {
+                                data[i + 3] = 0;
+                            } else {
+                                // Smoothstep S-curve mapping for soft, anti-aliased edge fading
+                                const t = (maxVal - 4) / 44;
+                                const alphaFactor = t * t * (3 - 2 * t);
+                                data[i + 3] = Math.round(data[i + 3] * alphaFactor);
+                                
+                                // Decontaminate black color blending on borders to restore actual source hues
+                                if (alphaFactor > 0.05) {
+                                    const boost = Math.min(2.2, 1.0 / alphaFactor);
+                                    data[i] = Math.min(255, Math.round(r * boost));
+                                    data[i + 1] = Math.min(255, Math.round(g * boost));
+                                    data[i + 2] = Math.min(255, Math.round(b * boost));
+                                }
+                            }
+                        }
+                    }
+                    tempVideoCtx.putImageData(imgData, 0, 0);
+                    ctx.drawImage(tempVideoCanvas, drawX, drawY, drawW, drawH);
+                } else {
+                    ctx.drawImage(img, drawX, drawY, drawW, drawH);
+                }
+            } else {
+                ctx.drawImage(img, drawX, drawY, drawW, drawH);
+            }
+            ctx.restore();
+        }
+
+        // Switch active camera source
+        async function switchCamera(deviceId) {
+            if (videoStream) {
+                videoStream.getTracks().forEach(t => t.stop());
+            }
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        deviceId: { exact: deviceId },
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: true
+                });
+
+                const audioLedIndicator = document.getElementById('audioLedIndicator');
+                if (audioLedIndicator) audioLedIndicator.textContent = "🟢";
+
+                liveVideo.srcObject = videoStream;
+                liveVideo.play().catch(e => console.log(e));
+                startAudioLevelMeter(videoStream);
+            } catch (err) {
+                console.warn("Troca de câmera exata falhou, tentando de forma simples...", err);
+                try {
+                    videoStream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { deviceId: { exact: deviceId } },
+                        audio: true
+                    });
+                    
+                    const audioLedIndicator = document.getElementById('audioLedIndicator');
+                    if (audioLedIndicator) audioLedIndicator.textContent = "🟢";
+
+                    liveVideo.srcObject = videoStream;
+                    liveVideo.play().catch(e => console.log(e));
+                    startAudioLevelMeter(videoStream);
+                } catch (e) {
+                    try {
+                        videoStream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: deviceId } });
+                        liveVideo.srcObject = videoStream;
+                        liveVideo.play().catch(ev => console.log(ev));
+                        startAudioLevelMeter(videoStream);
+                    } catch (lastErr) {
+                        alert("Impossível trocar de câmera: " + lastErr.message);
+                    }
+                }
+            }
+        }
+
+        function toggleMirror() {
+            isMirrored = !isMirrored;
+            btnToggleMirror.textContent = "Espelhar: " + (isMirrored ? "Ativo" : "Inativo");
+        }
+
+        // Active Audio Input sound frequency levels 
+        let audioContext = null;
+        let analyser = null;
+        let scriptNode = null;
+
+        function startAudioLevelMeter(stream) {
+            try {
+                if (scriptNode) scriptNode.disconnect();
+                if (analyser) analyser.disconnect();
+                if (audioContext && audioContext.state !== 'closed') audioContext.close();
+
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+
+                audioContext = new AudioCtx();
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                const source = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                scriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+                source.connect(analyser);
+                analyser.connect(scriptNode);
+                scriptNode.connect(audioContext.destination);
+
+                scriptNode.onaudioprocess = () => {
+                    const array = new Uint8Array(analyser.frequencyBinCount);
+                    analyser.getByteFrequencyData(array);
+                    let sum = 0;
+                    for (let i = 0; i < array.length; i++) {
+                        sum += array[i];
+                    }
+                    const avg = sum / array.length;
+                    const level = Math.min(100, Math.round((avg / 110) * 100));
+                    audioLevelMeter.style.width = level + '%';
+                };
+            } catch(e) {
+                console.log("Audio analyzer issue: ", e);
+            }
+        }
+
+        // Recording countdown & trigger control
+        function toggleRecording() {
+            if (isRecordingNow) {
+                stopRecordingActual();
+            } else {
+                startCountdownSeq();
+            }
+        }
+
+        function startCountdownSeq() {
+            const previewSection = document.getElementById('recordedPreviewSection');
+            if (previewSection) {
+                previewSection.classList.add('hidden');
+            }
+            const overlay = document.getElementById('countdownOverlay');
+            const num = document.getElementById('countdownNumber');
+            overlay.classList.remove('hidden');
+            
+            let count = 3;
+            num.textContent = count;
+            
+            countdownTimer = setInterval(() => {
+                count--;
+                if (count <= 0) {
+                    clearInterval(countdownTimer);
+                    overlay.classList.add('hidden');
+                    startRecordingActual();
+                } else {
+                    num.textContent = count;
+                }
+            }, 1000);
+        }
+
+        // Canvas composite screen recorder implementation
+        function startRecordingActual() {
+            const streamCanvas = canvas.captureStream ? canvas.captureStream(30) : null;
+            if (!streamCanvas) {
+                alert("Canvas capture não é suportado no celular atual.");
+                return;
+            }
+
+            // Bind high-quality microphone audio tracks to the video capture
+            const audioTracks = videoStream ? videoStream.getAudioTracks() : [];
+            const trackMix = new MediaStream([
+                ...streamCanvas.getVideoTracks(),
+                ...audioTracks
+            ]);
+
+            recordedChunks = [];
+            
+            // Format codecs check preferring .mp4 and H.264 for mobile native support
+            const typePreferences = [
+                'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+                'video/mp4;codecs=h264,aac',
+                'video/mp4;codecs=h264',
+                'video/mp4;codecs=avc1',
+                'video/mp4',
+                'video/webm;codecs=h264',
+                'video/webm;codecs=vp9,opus',
+                'video/webm;codecs=vp8,opus',
+                'video/webm'
+            ];
+
+            let chosenMime = '';
+            let selectedRecorder = null;
+
+            for (let i = 0; i < typePreferences.length; i++) {
+                const type = typePreferences[i];
+                if (MediaRecorder.isTypeSupported(type)) {
+                    try {
+                        const testRec = new MediaRecorder(trackMix, { mimeType: type });
+                        chosenMime = type;
+                        selectedRecorder = testRec;
+                        break;
+                    } catch (e) {
+                        console.warn("Trial mime failed " + type + ": " + e.message);
+                    }
+                }
+            }
+
+            try {
+                if (!selectedRecorder) {
+                    selectedRecorder = new MediaRecorder(trackMix);
+                    chosenMime = selectedRecorder.mimeType || 'video/mp4';
+                }
+                
+                mediaRecorder = selectedRecorder;
+                const finalMime = chosenMime;
+                const isMp4Format = finalMime.toLowerCase().indexOf('mp4') !== -1;
+                const extension = isMp4Format ? 'mp4' : 'webm';
+
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data && e.data.size > 0) {
+                        recordedChunks.push(e.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: finalMime });
+                    const downloadUrl = URL.createObjectURL(blob);
+                    
+                    if (currentRecordedUrl) {
+                        URL.revokeObjectURL(currentRecordedUrl);
+                    }
+                    currentRecordedUrl = downloadUrl;
+                    
+                    // Display preview section and video player to let client review it
+                    const previewSec = document.getElementById('recordedPreviewSection');
+                    const videoPlayer = document.getElementById('recordedVideoPlayer');
+                    
+                    if (previewSec && videoPlayer) {
+                        videoPlayer.src = downloadUrl;
+                        previewSec.classList.remove('hidden');
+                        previewSec.scrollIntoView({ behavior: 'smooth' });
+                    }
+
+                    // Setup buttons
+                    const btnSavePhone = document.getElementById('btnSaveToPhone');
+                    const btnSave = document.getElementById('btnSaveToGallery');
+                    const btnDownload = document.getElementById('btnDownloadFile');
+                    const btnReset = document.getElementById('btnResetAndRecordAgain');
+                    
+                    const filename = "video_engajamento_" + Date.now() + "." + extension;
+
+                    // Rebuild / Clone to remove old click event listeners safely
+                    const newBtnSavePhone = btnSavePhone ? btnSavePhone.cloneNode(true) : null;
+                    const newBtnSave = btnSave.cloneNode(true);
+                    const newBtnDownload = btnDownload.cloneNode(true);
+                    const newBtnReset = btnReset.cloneNode(true);
+                    
+                    if (btnSavePhone && newBtnSavePhone) {
+                        btnSavePhone.parentNode.replaceChild(newBtnSavePhone, btnSavePhone);
+                    }
+                    btnSave.parentNode.replaceChild(newBtnSave, btnSave);
+                    btnDownload.parentNode.replaceChild(newBtnDownload, btnDownload);
+                    btnReset.parentNode.replaceChild(newBtnReset, btnReset);
+
+                    const triggerDownloadAction = () => {
+                        const a = document.createElement('a');
+                        a.href = downloadUrl;
+                        a.download = filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(() => {
+                            document.body.removeChild(a);
+                        }, 200);
+                    };
+
+                    newBtnDownload.addEventListener('click', triggerDownloadAction);
+                    if (newBtnSavePhone) {
+                        newBtnSavePhone.addEventListener('click', triggerDownloadAction);
+                    }
+
+                    newBtnSave.addEventListener('click', async () => {
+                        const file = new File([blob], filename, { type: blob.type });
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            try {
+                                await navigator.share({
+                                    files: [file],
+                                    title: 'Gravação Engajamento',
+                                    text: 'Toque em Salvar Vídeo para guardar direto na Galeria de Fotos!'
+                                });
+                            } catch (eShare) {
+                                if (eShare.name !== 'AbortError') {
+                                    alert("Não foi possível salvar na galeria: " + eShare.message);
+                                }
+                            }
+                        } else {
+                            alert("Esse navegador atual não permite salvamento via compartilhamento. Use o botão Baixar Vídeo para salvá-lo no celular.");
+                        }
+                    });
+
+                    newBtnReset.addEventListener('click', async () => {
+                        // Reset player
+                        if (videoPlayer) {
+                            videoPlayer.removeAttribute('src');
+                            videoPlayer.load();
+                        }
+                        if (currentRecordedUrl) {
+                            URL.revokeObjectURL(currentRecordedUrl);
+                            currentRecordedUrl = null;
+                        }
+                        // Hide preview section
+                        if (previewSec) {
+                            previewSec.classList.add('hidden');
+                        }
+                        // Clear chunks
+                        recordedChunks = [];
+                        
+                        // Clear old streams before requesting new one
+                        stopCameraAccess();
+                        
+                        // Toggle/Trigger camera access directly to record again
+                        await requestCameraAccess();
+                    });
+
+                    const modal = document.getElementById('completionModal');
+                    if (modal) {
+                        modal.classList.remove('hidden');
+                    } else {
+                        alert("Gravação concluída! Assista ao seu depoimento logo abaixo e clique em 'SALVAR NO iOS' para guardá-lo no celular!");
+                    }
+                };
+
+                mediaRecorder.start();
+                isRecordingNow = true;
+                
+                // Update styling control board
+                statusBadge.classList.remove('hidden');
+                triggerText.textContent = "Parar Gravação";
+                triggerIcon.className = "h-3 w-3 bg-white block rounded-none";
+                triggerIcon.classList.remove('animate-ping');
+                const takePhotoBtn = document.getElementById('btnTakePhoto');
+                if (takePhotoBtn) takePhotoBtn.classList.add('hidden');
+
+                // Starts recording timer ticks
+                recordingSeconds = 0;
+                recordingTimer.textContent = "00:00";
+                
+                recordingInterval = setInterval(() => {
+                    recordingSeconds++;
+                    const mins = Math.floor(recordingSeconds / 60).toString().padStart(2, '0');
+                    const secs = (recordingSeconds % 60).toString().padStart(2, '0');
+                    recordingTimer.textContent = mins + ":" + secs;
+                    if (recordingSeconds >= 80) {
+                        stopRecordingActual();
+                    }
+                }, 1000);
+
+            } catch (err) {
+                alert("Problema ao carregar codec de vídeo do celular: " + err.message);
+            }
+        }
+
+        function stopRecordingActual() {
+            if (mediaRecorder && isRecordingNow) {
+                mediaRecorder.stop();
+                isRecordingNow = false;
+                
+                clearInterval(recordingInterval);
+                
+                statusBadge.classList.add('hidden');
+                triggerText.textContent = "GRAVAR VÍDEO";
+                triggerIcon.className = "h-3 w-3 rounded-full bg-white block animate-ping";
+                const takePhotoBtn = document.getElementById('btnTakePhoto');
+                if (takePhotoBtn) takePhotoBtn.classList.remove('hidden');
+            }
+        }
+
+        function stopCameraAccess() {
+            if (videoStream) {
+                try {
+                    videoStream.getTracks().forEach(track => track.stop());
+                } catch(e) {}
+                videoStream = null;
+            }
+            if (liveVideo) {
+                liveVideo.srcObject = null;
+            }
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            if (recordingInterval) {
+                clearInterval(recordingInterval);
+                recordingInterval = null;
+            }
+            if (scriptNode) {
+                try { scriptNode.disconnect(); } catch(e){}
+                scriptNode = null;
+            }
+            if (analyser) {
+                try { analyser.disconnect(); } catch(e){}
+                analyser = null;
+            }
+            if (audioContext && audioContext.state !== 'closed') {
+                try { audioContext.close(); } catch(e){}
+                audioContext = null;
+            }
+            isRecordingNow = false;
+            
+            // Retirar apenas a área de preview de captura da câmera e a placa de controles
+            document.getElementById('captureArea').classList.add('hidden');
+            document.getElementById('controlsBoard').classList.add('hidden');
+            
+            // NÃO ocultar o preview do vídeo gravado (recordedPreviewSection) e NÃO exibir o overlay de permissões se o vídeo de gravação estiver pronto
+            const previewSec = document.getElementById('recordedPreviewSection');
+            const hasPreview = previewSec && !previewSec.classList.contains('hidden');
+            if (!hasPreview) {
+                document.getElementById('permissionsOverlay').classList.remove('hidden');
+            }
+            
+            const headerRecordBtn = document.getElementById('btnHeaderTriggerRecording');
+            if (headerRecordBtn) headerRecordBtn.classList.add('hidden');
+            const takePhotoBtn = document.getElementById('btnTakePhoto');
+            if (takePhotoBtn) takePhotoBtn.classList.add('hidden');
+        }
+
+        // Global constant trick for width reference in drawing helper
+        const width = 1080;
+
+        // Dynamic event listeners for maximum iOS Safari gesture propagation compatibility
+        document.getElementById('btnRequestCamera').addEventListener('click', requestCameraAccess);
+        document.getElementById('btnToggleMirror').addEventListener('click', toggleMirror);
+        document.getElementById('btnHeaderTriggerRecording').addEventListener('click', toggleRecording);
+        document.getElementById('videoSelect').addEventListener('change', (e) => switchCamera(e.target.value));
+        document.getElementById('btnResetAndRecordAgain').addEventListener('click', async () => {
+            const videoPlayer = document.getElementById('recordedVideoPlayer');
+            const previewSec = document.getElementById('recordedPreviewSection');
+            if (videoPlayer) {
+                videoPlayer.removeAttribute('src');
+                videoPlayer.load();
+            }
+            if (currentRecordedUrl) {
+                URL.revokeObjectURL(currentRecordedUrl);
+                currentRecordedUrl = null;
+            }
+            if (previewSec) {
+                previewSec.classList.add('hidden');
+            }
+            recordedChunks = [];
+            stopCameraAccess();
+            await requestCameraAccess();
+        });
+        document.getElementById('btnModalClose').addEventListener('click', () => {
+            const modal = document.getElementById('completionModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+            const headerTitle = document.getElementById('headerAppTitle');
+            if (headerTitle) {
+                headerTitle.textContent = 'SALVE E COMPARTILHE SEU ENGAJAMENTO';
+            }
+            stopCameraAccess();
+        });
+
+        document.getElementById('btnTakePhoto').addEventListener('click', () => {
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    alert("Erro ao capturar foto.");
+                    return;
+                }
+                const filename = "foto_engajamento_" + Date.now() + ".png";
+                const file = new File([blob], filename, { type: 'image/png' });
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        files: [file],
+                        title: 'Foto Engajamento',
+                        text: 'Toque para salvar na Galeria!'
+                    }).catch(err => {
+                        if (err.name !== 'AbortError') {
+                            triggerPhotoDownload(blob, filename);
+                        }
+                    });
+                } else {
+                    triggerPhotoDownload(blob, filename);
+                }
+            }, 'image/png');
+        });
+
+        function triggerPhotoDownload(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 200);
+        }
+    </script>
+</body>
+</html>
