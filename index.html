@@ -19,11 +19,6 @@
 </head>
 <body class="flex flex-col min-h-screen">
 
-    <!-- Header bar -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3.5 text-center">
-        <span class="text-xs font-bold tracking-widest text-slate-500 uppercase font-mono">🎥 Estúdio de Depoimentos</span>
-    </header>
-
     <main class="flex-1 max-w-md w-full mx-auto px-4 py-6 flex flex-col justify-between">
         
         <!-- Status Notification Box -->
@@ -109,15 +104,8 @@
         <!-- Controls Board -->
         <div id="controlsBoard" class="hidden mt-4 space-y-4">
             
-            <!-- Section: Engagement Display Bar / Header and Main Control Buttons (Now below the camera view!) -->
-            <div id="engagementActionBoard" class="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 space-y-3.5">
-                <!-- Engagement Display Bar / Header -->
-                <div id="headerBarReplacement" class="flex items-center justify-between border-b border-slate-800/50 pb-2">
-                    <div class="flex items-center space-x-1.5">
-                        <div class="h-2 w-2 rounded-full bg-emerald-550 animate-pulse" id="headerStatusDot"></div>
-                        <span id="headerAppTitle" class="text-xs font-bold tracking-widest text-slate-300 uppercase font-mono">MOSTRE SEU ENGAJAMENTO</span>
-                    </div>
-                </div>
+            <!-- Section: Main Control Buttons (Now below the camera view!) -->
+            <div id="engagementActionBoard" class="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60">
 
                 <!-- Action buttons: Tirar Foto and Gravar Vídeo (or Stop) -->
                 <div class="flex gap-3">
@@ -139,7 +127,7 @@
             </div>
 
             <!-- Camera & Audio Status checks (Now below camera select) -->
-            <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between text-xs">
+            <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between text-xs hidden">
                 <div class="flex items-center space-x-2">
                     <span class="text-emerald-500" id="audioLedIndicator">🟢</span>
                     <span class="text-slate-300 font-medium font-mono text-[11px]">Nível de Voz:</span>
@@ -153,7 +141,7 @@
             </div>
 
             <!-- Dynamic instructions and status indicators -->
-            <div class="bg-indigo-950/20 border border-slate-850 rounded-xl p-3.5 text-center">
+            <div class="bg-indigo-950/20 border border-slate-850 rounded-xl p-3.5 text-center hidden">
                 <span class="inline-flex h-2 w-2 rounded-full bg-red-550 animate-ping mr-1.5"></span>
                 <span class="text-xs text-slate-300 font-medium animate-pulse">
                     Use o botão <strong class="text-red-450 uppercase tracking-widest font-mono">GRAVAR VÍDEO</strong> abaixo da câmera para gerenciar seu depoimento.
@@ -163,14 +151,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Explainer Instructions Footer -->
-        <footer class="mt-8 pt-4 border-t border-slate-900 text-center space-y-1.5">
-            <div class="text-[11px] text-indigo-400 font-bold uppercase tracking-wider">Como funciona no celular?</div>
-            <p class="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
-                1. Toque em \"Permitir Câmera e Áudio\".<br>2. Use o celular na posição vertical.<br>3. Aguarde os 3 segundos de contagem regressiva.<br>4. O vídeo final com o layout aprovado (35% superior/inferior) será salvo nas suas fotos/arquivos diretamente!
-            </p>
-        </footer>
 
         <!-- Beautiful custom completion modal replacement of default alert -->
         <div id="completionModal" class="fixed inset-0 flex items-center justify-center bg-slate-950/85 backdrop-blur-sm z-50 p-4 hidden">
@@ -196,10 +176,10 @@
     <script>
         // Paths pointing to files under the assets folder in the export package
         const TOP_OVERLAY_PATH = "./assets/arte_superior.png";
-        const BOTTOM_OVERLAY_PATH = "";
-        const FULLSCREEN_OVERLAY_PATH = "./assets/arte_tela_cheia.webm";
-        const TOP_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
-        const BOTTOM_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
+        const BOTTOM_OVERLAY_PATH = "./assets/arte_inferior.png";
+        const FULLSCREEN_OVERLAY_PATH = "";
+        const TOP_ADJUSTMENT = {"fitMode":"contain","offsetY":-14,"offsetX":-1,"scale":1};
+        const BOTTOM_ADJUSTMENT = {"fitMode":"contain","offsetY":19,"offsetX":0,"scale":1};
         const FULLSCREEN_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
 
         // UI State variables
@@ -520,7 +500,7 @@
                 const videoDevices = devices.filter(d => d.kind === 'videoinput');
                 
                 if (videoDevices.length > 1) {
-                    cameraSelectorBox.classList.remove('hidden');
+                    // Keep cameraSelectorBox hidden as requested by user
                     videoSelect.innerHTML = '';
                     videoDevices.forEach(device => {
                         const opt = document.createElement('option');
