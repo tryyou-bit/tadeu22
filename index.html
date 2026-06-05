@@ -20,21 +20,8 @@
 <body class="flex flex-col min-h-screen">
 
     <!-- Header bar -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3.5">
-        <div class="max-w-md mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-                <div class="h-2.5 w-2.5 rounded-full bg-emerald-550 mr-1" id="headerStatusDot"></div>
-                <h1 id="headerAppTitle" class="text-xs font-bold tracking-widest text-slate-400 uppercase font-mono">MOSTRE SEU ENGAJAMENTO</h1>
-                <button id="btnTakePhoto" class="hidden bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5 shadow-lg shadow-indigo-600/15 h-8">
-                    📸 <span>TIRAR FOTO</span>
-                </button>
-            </div>
-            <!-- Header-integrated Start/Stop recording button (replaces "MÓVEL COMPATÍVEL") -->
-            <button id="btnHeaderTriggerRecording" class="hidden bg-red-600 hover:bg-red-700 active:scale-95 text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5 shadow-lg shadow-red-600/20 h-8">
-                <span id="headerTriggerIcon" class="h-2 w-2 rounded-full bg-white block"></span>
-                <span id="headerTriggerText">GRAVAR VÍDEO</span>
-            </button>
-        </div>
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3.5 text-center">
+        <span class="text-xs font-bold tracking-widest text-slate-500 uppercase font-mono">🎥 Estúdio de Depoimentos</span>
     </header>
 
     <main class="flex-1 max-w-md w-full mx-auto px-4 py-6 flex flex-col justify-between">
@@ -111,57 +98,67 @@
                      <span>📱 SALVAR NO iOS</span>
                  </button>
                  <button id="btnResetAndRecordAgain" class="w-full bg-red-500 hover:bg-red-400 active:scale-97 transition-all text-white py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-red-500/20">
-                     <span>🔄 GRAVAR NOVAMENTE</span>
-                 </button>
-                 <button id="btnDownloadFile" class="w-full bg-slate-950 hover:bg-slate-850 active:scale-97 transition-all text-slate-300 py-2.5 px-4 rounded-xl font-semibold text-xs flex items-center justify-center space-x-2 border border-slate-800">
-                     <span>📥 Baixar Arquivo de Vídeo</span>
-                 </button>
+                      <span>🔄 GRAVAR NOVAMENTE</span>
+                  </button>
+                  <button id="btnDownloadFile" class="w-full bg-slate-950 hover:bg-slate-850 active:scale-97 transition-all text-slate-300 py-2.5 px-4 rounded-xl font-semibold text-xs flex items-center justify-center space-x-2 border border-slate-800">
+                      <span>📥 Baixar Arquivo de Vídeo</span>
+                  </button>
              </div>
-             
-
         </div>
 
         <!-- Controls Board -->
-        <div id="controlsBoard" class="hidden mt-6 space-y-4">
-            <!-- Camera & Audio Status checks -->
-            <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between text-xs">
-                <div class="flex items-center space-x-2">
-                    <span class="text-emerald-500" id="audioLedIndicator">🟢</span>
-                    <span class="text-slate-300 font-medium font-mono text-[11px]">Nível de Voz:</span>
+        <div id="controlsBoard" class="hidden mt-4 space-y-4">
+            
+            <!-- Section: Engagement Display Bar / Header and Main Control Buttons (Now below the camera view!) -->
+            <div id="engagementActionBoard" class="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 space-y-3.5">
+                <!-- Engagement Display Bar / Header -->
+                <div id="headerBarReplacement" class="flex items-center justify-between border-b border-slate-800/50 pb-2">
+                    <div class="flex items-center space-x-1.5">
+                        <div class="h-2 w-2 rounded-full bg-emerald-550 animate-pulse" id="headerStatusDot"></div>
+                        <span id="headerAppTitle" class="text-xs font-bold tracking-widest text-slate-300 uppercase font-mono">MOSTRE SEU ENGAJAMENTO</span>
+                    </div>
                 </div>
-                <div class="w-24 bg-slate-800 h-2 rounded-full overflow-hidden">
-                    <div id="audioLevelMeter" class="bg-emerald-500 h-full transition-all duration-75" style="width: 0%"></div>
+
+                <!-- Action buttons: Tirar Foto and Gravar Vídeo (or Stop) -->
+                <div class="flex gap-3">
+                    <button id="btnTakePhoto" class="hidden flex-1 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-[11px] font-bold uppercase tracking-wider py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/15 h-11">
+                        📸 <span>TIRAR FOTO</span>
+                    </button>
+                    <button id="btnHeaderTriggerRecording" class="hidden flex-1 bg-red-650 hover:bg-red-750 active:scale-95 text-white text-[11px] font-bold uppercase tracking-wider py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-red-600/20 h-11">
+                        <span id="headerTriggerIcon" class="h-2 w-2 rounded-full bg-white block animate-pulse"></span>
+                        <span id="headerTriggerText">GRAVAR VÍDEO</span>
+                    </button>
                 </div>
-                <button id="btnToggleMirror" class="bg-slate-800 text-[11px] text-slate-300 px-2 py-1 rounded border border-slate-700 hover:bg-slate-700">
-                    Espelhar: Ativo
-                </button>
             </div>
 
-            <!-- Available Video devices cycler -->
+            <!-- Available Video devices cycler (Planted ABOVE voice level) -->
             <div class="bg-indigo-950/30 border border-slate-800/80 rounded-xl p-3 flex flex-col space-y-1.5 hidden" id="cameraSelectorBox">
                 <label class="text-[10px] text-slate-400 font-bold tracking-wider uppercase">Selecione Outra Câmera:</label>
                 <select id="videoSelect" class="bg-slate-950 text-slate-300 rounded border border-slate-800 text-xs py-1.5 px-2 outline-none w-full">
                 </select>
             </div>
 
-            <!-- Performance Telemetry HUD for WebM/PNG overlay renderer -->
-            <div id="perfTelemetryHUD" class="bg-slate-900/50 rounded-xl p-3 border border-slate-800/80 flex flex-col space-y-1.5 text-[11px] font-mono text-slate-400">
-                <div class="flex items-center justify-between">
-                    <span>Performance do Layout:</span>
-                    <span id="perfTelemetryStatus" class="font-bold text-teal-400">Medindo...</span>
+            <!-- Camera & Audio Status checks (Now below camera select) -->
+            <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between text-xs">
+                <div class="flex items-center space-x-2">
+                    <span class="text-emerald-500" id="audioLedIndicator">🟢</span>
+                    <span class="text-slate-300 font-medium font-mono text-[11px]">Nível de Voz:</span>
                 </div>
-                <div id="perfTelemetryDetails" class="text-[10px] text-slate-500 leading-normal">
-                    Medindo frame rendering rate de animações...
+                <div class="w-24 bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div id="audioLevelMeter" class="bg-emerald-550 h-full transition-all duration-75" style="width: 0%"></div>
                 </div>
+                <button id="btnToggleMirror" class="bg-slate-800 text-[11px] text-slate-300 px-2 py-1 rounded border border-slate-700 hover:bg-slate-700">
+                    Espelhar: Ativo
+                </button>
             </div>
 
             <!-- Dynamic instructions and status indicators -->
             <div class="bg-indigo-950/20 border border-slate-850 rounded-xl p-3.5 text-center">
                 <span class="inline-flex h-2 w-2 rounded-full bg-red-550 animate-ping mr-1.5"></span>
-                <span class="text-xs text-slate-300 font-medium">
-                    Use o botão <strong class="text-red-450 uppercase tracking-widest font-mono">GRAVAR VÍDEO</strong> no cabeçalho superior do aplicativo para gerenciar seu depoimento.
+                <span class="text-xs text-slate-300 font-medium animate-pulse">
+                    Use o botão <strong class="text-red-450 uppercase tracking-widest font-mono">GRAVAR VÍDEO</strong> abaixo da câmera para gerenciar seu depoimento.
                 </span>
-                <div class="text-[10px] text-slate-500 mt-1.5">
+                <div class="text-[10px] text-slate-500 mt-1.5 font-mono">
                     O download começará automaticamente logo após você pressionar o botão de parar.
                 </div>
             </div>
@@ -193,23 +190,17 @@
             </div>
         </div>
 
-    </main>                <button id="btnModalClose" class="w-full bg-slate-800 hover:bg-slate-700 active:scale-97 text-xs font-bold text-white py-3 px-4 rounded-xl transition border border-slate-700">
-                    Fechar
-                </button>
-            </div>
-        </div>
-
     </main>
 
     <!-- Script Layer -->
     <script>
         // Paths pointing to files under the assets folder in the export package
-        const TOP_OVERLAY_PATH = "";
+        const TOP_OVERLAY_PATH = "./assets/arte_superior.png";
         const BOTTOM_OVERLAY_PATH = "";
         const FULLSCREEN_OVERLAY_PATH = "./assets/arte_tela_cheia.webm";
         const TOP_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
         const BOTTOM_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
-        const FULLSCREEN_ADJUSTMENT = {"fitMode":"stretch","offsetY":26,"offsetX":-2,"scale":1};
+        const FULLSCREEN_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
 
         // UI State variables
         let isMirrored = true;
