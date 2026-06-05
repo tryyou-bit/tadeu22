@@ -105,7 +105,7 @@
         <div id="controlsBoard" class="hidden mt-2.5 space-y-3">
             
             <!-- Section: Main Control Buttons (Now below the camera view!) -->
-            <div id="engagementActionBoard" class="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60">
+            <div id="engagementActionBoard" class="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60 space-y-3">
 
                 <!-- Action buttons: Tirar Foto and Gravar Vídeo (or Stop) -->
                 <div class="flex gap-3">
@@ -117,13 +117,18 @@
                         <span id="headerTriggerText">GRAVAR VÍDEO</span>
                     </button>
                 </div>
-            </div>
 
-            <!-- Available Video devices cycler (Planted ABOVE voice level) -->
-            <div class="bg-indigo-950/30 border border-slate-800/80 rounded-xl p-3 flex flex-col space-y-1.5 hidden" id="cameraSelectorBox">
-                <label class="text-[10px] text-slate-400 font-bold tracking-wider uppercase">Selecione Outra Câmera:</label>
-                <select id="videoSelect" class="bg-slate-950 text-slate-300 rounded border border-slate-800 text-xs py-1.5 px-2 outline-none w-full">
-                </select>
+                <!-- Available Video devices cycler (Planted ABOVE voice level) -->
+                <div class="bg-slate-950/85 border border-slate-800/80 rounded-xl p-3 flex flex-col space-y-1.5 hidden" id="cameraSelectorBox">
+                    <label class="text-[10px] text-slate-400 font-bold tracking-wider uppercase">Selecione Outra Câmera:</label>
+                    <div class="relative">
+                        <select id="videoSelect" class="bg-slate-950 text-slate-300 rounded-lg border border-slate-800 text-xs py-2 px-3 outline-none w-full appearance-none pr-8">
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400 text-xs">
+                            🔽
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Camera & Audio Status checks (Now below camera select) -->
@@ -176,11 +181,11 @@
     <script>
         // Paths pointing to files under the assets folder in the export package
         const TOP_OVERLAY_PATH = "";
-        const BOTTOM_OVERLAY_PATH = "./assets/arte_inferior.png";
-        const FULLSCREEN_OVERLAY_PATH = "./assets/arte_tela_cheia.webm";
+        const BOTTOM_OVERLAY_PATH = "";
+        const FULLSCREEN_OVERLAY_PATH = "./assets/arte_tela_cheia.png";
         const TOP_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
         const BOTTOM_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
-        const FULLSCREEN_ADJUSTMENT = {"fitMode":"contain","offsetY":0,"offsetX":0,"scale":1};
+        const FULLSCREEN_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
 
         // UI State variables
         let isMirrored = true;
@@ -500,7 +505,7 @@
                 const videoDevices = devices.filter(d => d.kind === 'videoinput');
                 
                 if (videoDevices.length > 1) {
-                    // Keep cameraSelectorBox hidden as requested by user
+                    cameraSelectorBox.classList.remove('hidden');
                     videoSelect.innerHTML = '';
                     videoDevices.forEach(device => {
                         const opt = document.createElement('option');
