@@ -19,7 +19,7 @@
 </head>
 <body class="flex flex-col min-h-screen">
 
-    <main class="flex-1 max-w-md w-full mx-auto px-4 py-6 flex flex-col justify-between">
+    <main class="flex-1 max-w-md w-full mx-auto px-4 py-4 flex flex-col justify-start space-y-2.5">
         
         <!-- Status Notification Box -->
         <div id="statusNotification" class="mb-4 bg-blue-950/75 border border-blue-800 px-4 py-3 rounded-xl flex items-start space-x-3 hidden">
@@ -72,7 +72,7 @@
         </div>
 
         <!-- Recorded Video Preview Section (For direct viewing & Gallery Saving) -->
-        <div id="recordedPreviewSection" class="hidden mt-6 p-5 bg-slate-900 border border-emerald-500/30 rounded-2xl space-y-4 shadow-xl">
+        <div id="recordedPreviewSection" class="hidden mt-2.5 p-4 bg-slate-900 border border-emerald-500/30 rounded-2xl space-y-3 shadow-xl">
              <div class="text-center">
                  <span class="inline-flex items-center gap-1.5 text-[10px] bg-emerald-950/80 border border-emerald-500/40 font-bold uppercase py-1 px-3.5 rounded-full text-emerald-400 tracking-widest font-mono">
                      🟢 Gravação Pronta!
@@ -95,14 +95,14 @@
                  <button id="btnResetAndRecordAgain" class="w-full bg-red-500 hover:bg-red-400 active:scale-97 transition-all text-white py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-red-500/20">
                       <span>🔄 GRAVAR NOVAMENTE</span>
                   </button>
-                  <button id="btnDownloadFile" class="w-full bg-slate-950 hover:bg-slate-850 active:scale-97 transition-all text-slate-300 py-2.5 px-4 rounded-xl font-semibold text-xs flex items-center justify-center space-x-2 border border-slate-800">
-                      <span>📥 Baixar Arquivo de Vídeo</span>
+                  <button id="btnCloseApp" class="w-full bg-slate-950 hover:bg-slate-850 active:scale-97 transition-all text-slate-300 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 border border-slate-800 shadow-md">
+                      <span>🚪 Fechar Aplicativo</span>
                   </button>
              </div>
         </div>
 
         <!-- Controls Board -->
-        <div id="controlsBoard" class="hidden mt-4 space-y-4">
+        <div id="controlsBoard" class="hidden mt-2.5 space-y-3">
             
             <!-- Section: Main Control Buttons (Now below the camera view!) -->
             <div id="engagementActionBoard" class="bg-slate-900/40 p-4 rounded-2xl border border-slate-800/60">
@@ -112,7 +112,7 @@
                     <button id="btnTakePhoto" class="hidden flex-1 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-[11px] font-bold uppercase tracking-wider py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/15 h-11">
                         📸 <span>TIRAR FOTO</span>
                     </button>
-                    <button id="btnHeaderTriggerRecording" class="hidden flex-1 bg-red-650 hover:bg-red-750 active:scale-95 text-white text-[11px] font-bold uppercase tracking-wider py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-red-600/20 h-11">
+                    <button id="btnHeaderTriggerRecording" class="hidden flex-1 bg-red-700 hover:bg-red-600 active:scale-95 text-white text-[11px] font-bold uppercase tracking-wider py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-red-700/35 h-11">
                         <span id="headerTriggerIcon" class="h-2 w-2 rounded-full bg-white block animate-pulse"></span>
                         <span id="headerTriggerText">GRAVAR VÍDEO</span>
                     </button>
@@ -175,12 +175,12 @@
     <!-- Script Layer -->
     <script>
         // Paths pointing to files under the assets folder in the export package
-        const TOP_OVERLAY_PATH = "./assets/arte_superior.png";
+        const TOP_OVERLAY_PATH = "";
         const BOTTOM_OVERLAY_PATH = "./assets/arte_inferior.png";
-        const FULLSCREEN_OVERLAY_PATH = "";
-        const TOP_ADJUSTMENT = {"fitMode":"contain","offsetY":-14,"offsetX":-1,"scale":1};
-        const BOTTOM_ADJUSTMENT = {"fitMode":"contain","offsetY":19,"offsetX":0,"scale":1};
-        const FULLSCREEN_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
+        const FULLSCREEN_OVERLAY_PATH = "./assets/arte_tela_cheia.webm";
+        const TOP_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
+        const BOTTOM_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
+        const FULLSCREEN_ADJUSTMENT = {"fitMode":"contain","offsetY":0,"offsetX":0,"scale":1};
 
         // UI State variables
         let isMirrored = true;
@@ -942,7 +942,7 @@
                     // Setup buttons
                     const btnSavePhone = document.getElementById('btnSaveToPhone');
                     const btnSave = document.getElementById('btnSaveToGallery');
-                    const btnDownload = document.getElementById('btnDownloadFile');
+                    const btnCloseApp = document.getElementById('btnCloseApp');
                     const btnReset = document.getElementById('btnResetAndRecordAgain');
                     
                     const filename = "video_engajamento_" + Date.now() + "." + extension;
@@ -950,14 +950,16 @@
                     // Rebuild / Clone to remove old click event listeners safely
                     const newBtnSavePhone = btnSavePhone ? btnSavePhone.cloneNode(true) : null;
                     const newBtnSave = btnSave.cloneNode(true);
-                    const newBtnDownload = btnDownload.cloneNode(true);
+                    const newBtnCloseApp = btnCloseApp ? btnCloseApp.cloneNode(true) : null;
                     const newBtnReset = btnReset.cloneNode(true);
                     
                     if (btnSavePhone && newBtnSavePhone) {
                         btnSavePhone.parentNode.replaceChild(newBtnSavePhone, btnSavePhone);
                     }
                     btnSave.parentNode.replaceChild(newBtnSave, btnSave);
-                    btnDownload.parentNode.replaceChild(newBtnDownload, btnDownload);
+                    if (btnCloseApp && newBtnCloseApp) {
+                        btnCloseApp.parentNode.replaceChild(newBtnCloseApp, btnCloseApp);
+                    }
                     btnReset.parentNode.replaceChild(newBtnReset, btnReset);
 
                     const triggerDownloadAction = (sourceName) => {
@@ -972,7 +974,30 @@
                         }, 200);
                     };
 
-                    newBtnDownload.addEventListener('click', () => triggerDownloadAction('download'));
+                    if (newBtnCloseApp) {
+                        newBtnCloseApp.addEventListener('click', () => {
+                            trackPixelEvent('FecharAplicativo');
+                            const completionModal = document.getElementById('completionModal');
+                            if (completionModal) {
+                                const modalTitle = completionModal.querySelector('h3');
+                                const modalDesc = completionModal.querySelector('p');
+                                if (modalTitle) {
+                                    modalTitle.textContent = "APLICATIVO FINALIZADO";
+                                }
+                                if (modalDesc) {
+                                    modalDesc.innerHTML = "Obrigado! Seu depoimento foi gravado e salvo com sucesso. Você já pode fechar esta tela.";
+                                }
+                                completionModal.classList.remove('hidden');
+                            } else {
+                                alert("Obrigado por sua participação!");
+                            }
+                            try {
+                                window.close();
+                            } catch (e) {
+                                console.log("window.close failed", e);
+                            }
+                        });
+                    }
                     if (newBtnSavePhone) {
                         newBtnSavePhone.addEventListener('click', () => triggerDownloadAction('phone'));
                     }
