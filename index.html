@@ -15,6 +15,25 @@
             touch-action: manipulation;
         }
     </style>
+    ${facebookPixelId.trim() ? `
+    <!-- Facebook Pixel Code -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '${facebookPixelId.trim()}');
+      fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=${facebookPixelId.trim()}&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Facebook Pixel Code -->
+    ` : ''}
 </head>
 <body class="flex flex-col min-h-screen">
 
@@ -24,12 +43,12 @@
             <div class="flex items-center space-x-2">
                 <div class="h-2.5 w-2.5 rounded-full bg-emerald-550 mr-1" id="headerStatusDot"></div>
                 <h1 id="headerAppTitle" class="text-xs font-bold tracking-widest text-slate-400 uppercase font-mono">MOSTRE SEU ENGAJAMENTO</h1>
-                <button id="btnTakePhoto" class="hidden bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full transition-all flex items-center gap-1 shadow-lg shadow-indigo-600/15">
+                <button id="btnTakePhoto" class="hidden bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5 shadow-lg shadow-indigo-600/15 h-8">
                     📸 <span>TIRAR FOTO</span>
                 </button>
             </div>
             <!-- Header-integrated Start/Stop recording button (replaces "MÓVEL COMPATÍVEL") -->
-            <button id="btnHeaderTriggerRecording" class="hidden bg-red-600 hover:bg-red-700 active:scale-95 text-white text-[11px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full transition-all flex items-center gap-1.5 shadow-lg shadow-red-600/20">
+            <button id="btnHeaderTriggerRecording" class="hidden bg-red-600 hover:bg-red-700 active:scale-95 text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5 shadow-lg shadow-red-600/20 h-8">
                 <span id="headerTriggerIcon" class="h-2 w-2 rounded-full bg-white block"></span>
                 <span id="headerTriggerText">GRAVAR VÍDEO</span>
             </button>
@@ -84,7 +103,7 @@
             <div id="timerBadge" class="absolute top-4 right-4 bg-slate-950/80 backdrop-blur-sm text-xs font-mono py-1 px-2.5 rounded-full text-white tracking-wider flex items-center space-x-1 border border-slate-800">
                 <span class="text-red-500 animate-pulse">●</span>
                 <span id="recordingTimer">00:00</span>
-                <span class="text-slate-500 font-bold">/ 01:20</span>
+                <span class="text-slate-500 font-bold">/ ${Math.floor(maxDuration / 60).toString().padStart(2, '0')}:${(maxDuration % 60).toString().padStart(2, '0')}</span>
             </div>
         </div>
 
@@ -170,10 +189,7 @@
         <footer class="mt-8 pt-4 border-t border-slate-900 text-center space-y-1.5">
             <div class="text-[11px] text-indigo-400 font-bold uppercase tracking-wider">Como funciona no celular?</div>
             <p class="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
-                1. Toque em "Permitir Câmera e Áudio".<br>
-                2. Use o celular na posição vertical.<br>
-                3. Aguarde os 3 segundos de contagem regressiva.<br>
-                4. O vídeo final com o layout aprovado (35% superior/inferior) será salvo nas suas fotos/arquivos diretamente!
+                1. Toque em \"Permitir Câmera e Áudio\".<br>2. Use o celular na posição vertical.<br>3. Aguarde os 3 segundos de contagem regressiva.<br>4. O vídeo final com o layout aprovado (35% superior/inferior) será salvo nas suas fotos/arquivos diretamente!
             </p>
         </footer>
 
@@ -195,17 +211,23 @@
             </div>
         </div>
 
+    </main>                <button id="btnModalClose" class="w-full bg-slate-800 hover:bg-slate-700 active:scale-97 text-xs font-bold text-white py-3 px-4 rounded-xl transition border border-slate-700">
+                    Fechar
+                </button>
+            </div>
+        </div>
+
     </main>
 
     <!-- Script Layer -->
     <script>
         // Paths pointing to files under the assets folder in the export package
-        const TOP_OVERLAY_PATH = "./assets/arte_superior.webm";
-        const BOTTOM_OVERLAY_PATH = "./assets/arte_inferior.webm";
-        const FULLSCREEN_OVERLAY_PATH = "";
-        const TOP_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
-        const BOTTOM_ADJUSTMENT = {"fitMode":"contain","offsetY":-4,"offsetX":-4,"scale":1.3};
-        const FULLSCREEN_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
+        const TOP_OVERLAY_PATH = "./assets/arte_superior.png";
+        const BOTTOM_OVERLAY_PATH = "./assets/arte_inferior.png";
+        const FULLSCREEN_OVERLAY_PATH = "./assets/arte_tela_cheia.webm";
+        const TOP_ADJUSTMENT = {"fitMode":"contain","offsetY":0,"offsetX":0,"scale":1};
+        const BOTTOM_ADJUSTMENT = {"fitMode":"contain","offsetY":34,"offsetX":4,"scale":1};
+        const FULLSCREEN_ADJUSTMENT = {"fitMode":"contain","offsetY":0,"offsetX":0,"scale":1};
 
         // UI State variables
         let isMirrored = true;
@@ -219,6 +241,18 @@
         let mediaRecorder = null;
         let recordedChunks = [];
         let currentRecordedUrl = null;
+
+        // Facebook Pixel Event custom tracking helper
+        function trackPixelEvent(eventName, params = {}) {
+            if (typeof fbq === 'function') {
+                try {
+                    fbq('trackCustom', eventName, params);
+                    console.log('[Pixel Tracking] Event tracked:', eventName, params);
+                } catch (e) {
+                    console.error('[Pixel Tracking] Error tracking event:', e);
+                }
+            }
+        }
 
         // Elements
         const liveVideo = document.getElementById('liveVideo');
@@ -431,7 +465,7 @@
             playAllOverlayVideos();
 
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert("Atenção de Segurança:\n\nA câmera e o microfone do celular só podem ser acessados através de conexões seguras (HTTPS) ou LOCALHOST por regras de privacidade dos navegadores.\n\nCaso esteja testando em rede local (ex: http://192.168...), acesse usando HTTPS ou faça upload do arquivo em algum servidor seguro (como GitHub Pages, Vercel ou Firebase Hosting), ou confira o arquivo LEIA-ME.txt no ZIP.");
+                alert("Atenção de Segurança:\n\nA câmera e o microfone do celular só podem ser acessados através de conexões seguras (HTTPS) ou LOCALHOST por regras de privacidade dos navegadores.");
                 showNotification("Acesso bloqueado: Câmera requer conexão segura HTTPS no celular.");
                 return;
             }
@@ -481,7 +515,7 @@
                     return;
                 } catch (err2) {
                     console.error("Todas as estratégias de inicialização de mídia falharam:", err2);
-                    alert("Impossível iniciar câmera: " + err2.message + "\n\nCertifique-se de:\n1. Estar acessando via protocolo seguro HTTPS (ex: https://...)\n2. Ter concedido as permissões de câmera nas configurações de privacidade do Safari ou Chrome.");
+                    alert("Impossível iniciar câmera: " + err2.message);
                     showNotification("Acesso negado para câmera/áudio.");
                 }
             }
@@ -820,15 +854,15 @@
                 scriptNode.connect(audioContext.destination);
 
                 scriptNode.onaudioprocess = () => {
-                    const array = new Uint8Array(analyser.frequencyBinCount);
-                    analyser.getByteFrequencyData(array);
-                    let sum = 0;
-                    for (let i = 0; i < array.length; i++) {
-                        sum += array[i];
-                    }
-                    const avg = sum / array.length;
-                    const level = Math.min(100, Math.round((avg / 110) * 100));
-                    audioLevelMeter.style.width = level + '%';
+                     const array = new Uint8Array(analyser.frequencyBinCount);
+                     analyser.getByteFrequencyData(array);
+                     let sum = 0;
+                     for (let i = 0; i < array.length; i++) {
+                         sum += array[i];
+                     }
+                     const avg = sum / array.length;
+                     const level = Math.min(100, Math.round((avg / 110) * 100));
+                     audioLevelMeter.style.width = level + '%';
                 };
             } catch(e) {
                 console.log("Audio analyzer issue: ", e);
@@ -870,6 +904,7 @@
 
         // Canvas composite screen recorder implementation
         function startRecordingActual() {
+            trackPixelEvent('IniciarGravacao');
             const streamCanvas = canvas.captureStream ? canvas.captureStream(30) : null;
             if (!streamCanvas) {
                 alert("Canvas capture não é suportado no celular atual.");
@@ -972,7 +1007,8 @@
                     btnDownload.parentNode.replaceChild(newBtnDownload, btnDownload);
                     btnReset.parentNode.replaceChild(newBtnReset, btnReset);
 
-                    const triggerDownloadAction = () => {
+                    const triggerDownloadAction = (sourceName) => {
+                        trackPixelEvent(sourceName === 'phone' ? 'SalvarCelular' : 'BaixarVideo');
                         const a = document.createElement('a');
                         a.href = downloadUrl;
                         a.download = filename;
@@ -983,12 +1019,13 @@
                         }, 200);
                     };
 
-                    newBtnDownload.addEventListener('click', triggerDownloadAction);
+                    newBtnDownload.addEventListener('click', () => triggerDownloadAction('download'));
                     if (newBtnSavePhone) {
-                        newBtnSavePhone.addEventListener('click', triggerDownloadAction);
+                        newBtnSavePhone.addEventListener('click', () => triggerDownloadAction('phone'));
                     }
 
                     newBtnSave.addEventListener('click', async () => {
+                        trackPixelEvent('SalvarGaleria');
                         const file = new File([blob], filename, { type: blob.type });
                         if (navigator.canShare && navigator.canShare({ files: [file] })) {
                             try {
@@ -1044,7 +1081,7 @@
                 
                 // Update styling control board
                 statusBadge.classList.remove('hidden');
-                triggerText.textContent = "Parar Gravação";
+                triggerText.textContent = "PARAR GRAVAÇÃO";
                 triggerIcon.className = "h-3 w-3 bg-white block rounded-none";
                 triggerIcon.classList.remove('animate-ping');
                 const takePhotoBtn = document.getElementById('btnTakePhoto');
@@ -1071,6 +1108,7 @@
 
         function stopRecordingActual() {
             if (mediaRecorder && isRecordingNow) {
+                trackPixelEvent('PararGravacao');
                 mediaRecorder.stop();
                 isRecordingNow = false;
                 
@@ -1166,12 +1204,13 @@
             }
             const headerTitle = document.getElementById('headerAppTitle');
             if (headerTitle) {
-                headerTitle.textContent = 'SALVE E COMPARTILHE SEU ENGAJAMENTO';
+                headerTitle.textContent = "SALVE E COMPARTILHE SEU ENGAJAMENTO";
             }
             stopCameraAccess();
         });
 
         document.getElementById('btnTakePhoto').addEventListener('click', () => {
+            trackPixelEvent('TirarFoto');
             canvas.toBlob((blob) => {
                 if (!blob) {
                     alert("Erro ao capturar foto.");
@@ -1180,16 +1219,19 @@
                 const filename = "foto_engajamento_" + Date.now() + ".png";
                 const file = new File([blob], filename, { type: 'image/png' });
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    trackPixelEvent('CompartilharFoto');
                     navigator.share({
                         files: [file],
                         title: 'Foto Engajamento',
                         text: 'Toque para salvar na Galeria!'
                     }).catch(err => {
                         if (err.name !== 'AbortError') {
+                            trackPixelEvent('BaixarFotoFallback');
                             triggerPhotoDownload(blob, filename);
                         }
                     });
                 } else {
+                    trackPixelEvent('BaixarFoto');
                     triggerPhotoDownload(blob, filename);
                 }
             }, 'image/png');
