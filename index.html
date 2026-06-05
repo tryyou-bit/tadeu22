@@ -15,25 +15,7 @@
             touch-action: manipulation;
         }
     </style>
-    ${facebookPixelId.trim() ? `
-    <!-- Facebook Pixel Code -->
-    <script>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '${facebookPixelId.trim()}');
-      fbq('track', 'PageView');
-    </script>
-    <noscript><img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=${facebookPixelId.trim()}&ev=PageView&noscript=1"
-    /></noscript>
-    <!-- End Facebook Pixel Code -->
-    ` : ''}
+    
 </head>
 <body class="flex flex-col min-h-screen">
 
@@ -103,7 +85,7 @@
             <div id="timerBadge" class="absolute top-4 right-4 bg-slate-950/80 backdrop-blur-sm text-xs font-mono py-1 px-2.5 rounded-full text-white tracking-wider flex items-center space-x-1 border border-slate-800">
                 <span class="text-red-500 animate-pulse">●</span>
                 <span id="recordingTimer">00:00</span>
-                <span class="text-slate-500 font-bold">/ ${Math.floor(maxDuration / 60).toString().padStart(2, '0')}:${(maxDuration % 60).toString().padStart(2, '0')}</span>
+                <span class="text-slate-500 font-bold">/ 01:20</span>
             </div>
         </div>
 
@@ -223,11 +205,11 @@
     <script>
         // Paths pointing to files under the assets folder in the export package
         const TOP_OVERLAY_PATH = "./assets/arte_superior.png";
-        const BOTTOM_OVERLAY_PATH = "./assets/arte_inferior.png";
+        const BOTTOM_OVERLAY_PATH = "";
         const FULLSCREEN_OVERLAY_PATH = "./assets/arte_tela_cheia.webm";
-        const TOP_ADJUSTMENT = {"fitMode":"contain","offsetY":0,"offsetX":0,"scale":1};
-        const BOTTOM_ADJUSTMENT = {"fitMode":"contain","offsetY":34,"offsetX":4,"scale":1};
-        const FULLSCREEN_ADJUSTMENT = {"fitMode":"contain","offsetY":0,"offsetX":0,"scale":1};
+        const TOP_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
+        const BOTTOM_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
+        const FULLSCREEN_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
 
         // UI State variables
         let isMirrored = true;
