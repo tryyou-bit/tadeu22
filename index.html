@@ -17,204 +17,199 @@
     </style>
     
 </head>
-<body class="bg-[#060e20] text-slate-100 font-sans overflow-hidden select-none flex flex-col min-h-screen">
+<body class="flex flex-col min-h-screen">
 
-    <!-- Top floating app header (styled as storytelling capture interface) -->
-    <header class="fixed top-0 left-0 w-full z-45 flex justify-between items-center px-4 py-3.5 bg-gradient-to-b from-black/85 to-transparent pt-safe">
-        <h1 id="headerAppTitle" class="text-[10px] font-black tracking-widest text-slate-400 uppercase font-mono hidden">MOSTRE SEU ENGAJAMENTO</h1>
-        
-        <!-- Back/reset button -->
-        <button id="btnModalClose" class="text-white hover:scale-110 active:scale-95 transition text-2xl drop-shadow-md">
-            🔙
-        </button>
-        
-        <!-- Center Timer & Status Badge -->
-        <div id="statusBadgeContainer" class="flex items-center gap-2 bg-black/45 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 shadow-lg">
-            <div id="statusBadge" class="w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse hidden"></div>
-            <span id="recordingTimer" class="font-mono text-sm tracking-widest text-white font-bold">00:00</span>
-            <span id="recordingTimerDivider" class="text-slate-500 font-bold text-xs">/ 01:20</span>
+    <!-- Header bar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 px-4 py-3.5">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <div class="h-2.5 w-2.5 rounded-full bg-emerald-550 mr-1" id="headerStatusDot"></div>
+                <h1 id="headerAppTitle" class="text-xs font-bold tracking-widest text-slate-400 uppercase font-mono">MOSTRE SEU ENGAJAMENTO</h1>
+                <button id="btnTakePhoto" class="hidden bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5 shadow-lg shadow-indigo-600/15 h-8">
+                    📸 <span>TIRAR FOTO</span>
+                </button>
+            </div>
+            <!-- Header-integrated Start/Stop recording button (replaces "MÓVEL COMPATÍVEL") -->
+            <button id="btnHeaderTriggerRecording" class="hidden bg-red-600 hover:bg-red-700 active:scale-95 text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5 shadow-lg shadow-red-600/20 h-8">
+                <span id="headerTriggerIcon" class="h-2 w-2 rounded-full bg-white block"></span>
+                <span id="headerTriggerText">GRAVAR VÍDEO</span>
+            </button>
         </div>
-        
-        <!-- Quick Swap Camera button -->
-        <button id="btnFlipCamera" class="text-white hover:scale-110 active:scale-95 transition text-2xl drop-shadow-md">
-            🔄
-        </button>
     </header>
 
-    <!-- Standalone Live composition section (Viewfinder gets fixed inset screen background!) -->
-    <div id="captureArea" class="hidden fixed inset-0 w-full h-full bg-black overflow-hidden z-10">
-        <!-- 3s Countdown Viewport overlay -->
-        <div id="countdownOverlay" class="absolute inset-0 bg-black/85 backdrop-blur-sm flex flex-col items-center justify-center z-50 hidden">
-            <div id="countdownNumber" class="text-9xl font-black text-indigo-500 animate-ping">3</div>
-            <p class="text-xs font-semibold tracking-widest text-slate-400 uppercase mt-8">Prepare-se para o vídeo...</p>
+    <main class="flex-1 max-w-md w-full mx-auto px-4 py-6 flex flex-col justify-between">
+        
+        <!-- Status Notification Box -->
+        <div id="statusNotification" class="mb-4 bg-blue-950/75 border border-blue-800 px-4 py-3 rounded-xl flex items-start space-x-3 hidden">
+            <span class="text-blue-400 text-lg mt-0.5">ℹ️</span>
+            <div class="text-xs text-blue-200" id="statusMessageText"></div>
         </div>
 
-        <!-- Mirrored Hidden Video component -->
-        <video id="liveVideo" autoplay playsinline muted style="position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0.01; pointer-events: none;"></video>
-        
-        <!-- Target Canvas -->
-        <canvas id="compositeCanvas" class="w-full h-full object-cover block"></canvas>
-    </div>
-
-    <!-- Status Notification Box -->
-    <div id="statusNotification" class="fixed top-20 left-4 right-4 z-40 bg-blue-950/85 border border-blue-800/80 backdrop-blur-md px-4 py-3 rounded-2xl flex items-start space-x-3 hidden shadow-2xl">
-        <span class="text-blue-400 text-base mt-0.5">ℹ️</span>
-        <div class="text-xs text-blue-200" id="statusMessageText"></div>
-    </div>
-
-    <!-- Permissions Central Card -->
-    <div id="permissionsOverlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center px-6 bg-[#090d16]/95 backdrop-blur-md w-full h-full">
-        <div class="max-w-sm w-full p-6 bg-slate-900/90 border border-slate-800 rounded-3xl text-center space-y-5 shadow-2xl">
-            <div class="w-16 h-16 rounded-full bg-indigo-500/10 flex items-center justify-center mx-auto text-3xl">
+        <div id="permissionsOverlay" class="p-6 bg-slate-900/90 border border-slate-800 rounded-2xl text-center space-y-4 shadow-xl">
+            <div class="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center mx-auto text-indigo-400 text-2xl">
                 📹
             </div>
-            <h3 class="text-base font-extrabold text-white tracking-tight">Autorização de Câmera & Áudio</h3>
-            <p class="text-xs text-slate-400 leading-relaxed">
+            <h3 class="text-base font-bold text-white">Autorização de Câmera & Áudio</h3>
+            <p class="text-xs text-slate-400">
                 Este aplicativo utiliza a câmera frontal e o microfone do celular para gravar seu depoimento aplicando as artes nas margens superior (35%) e inferior (35%).
             </p>
-            <button id="btnRequestCamera" class="w-full bg-indigo-600 hover:bg-indigo-500 active:scale-95 transition text-white py-3.5 px-4 rounded-xl font-bold uppercase tracking-wider text-xs shadow-lg shadow-indigo-600/30">
+            <button id="btnRequestCamera" class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-98 transition text-white py-3 px-4 rounded-xl font-medium text-sm">
                 Permitir Câmera e Áudio
             </button>
-            <div class="text-[11px] text-slate-500 leading-normal">
+            <div class="text-[11px] text-slate-500">
                 As gravações são salvas localmente no seu dispositivo e não passam por nenhum servidor externo.
             </div>
         </div>
-    </div>
 
-    <!-- Bottom Controls Zone (Lower part of the screen capture buttons dock) -->
-    <div id="bottomDock" class="fixed bottom-8 left-0 w-full z-40 flex items-center justify-around px-8 bg-gradient-to-t from-black/85 via-black/45 to-transparent pt-12 pb-4">
-        <!-- Close/Reset and settings slider toggles on left/right side or integrated -->
-        <button id="btnToggleMirror" class="w-12 h-12 rounded-full bg-black/45 backdrop-blur-md border border-white/20 flex items-center justify-center text-white active:scale-95 hover:scale-105 transition-all text-xl shadow-lg" title="Espelhar:">
-            🪞
-        </button>
-
-        <!-- Record Video (Main center trigger) -->
-        <button id="btnHeaderTriggerRecording" class="relative w-23 h-23 rounded-full border-4 border-slate-200 flex items-center justify-center p-1 bg-transparent hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_0_20px_rgba(0,0,0,0.6)]">
-            <div id="headerTriggerIcon" class="w-full h-full rounded-full bg-red-650 transition-all duration-300"></div>
-        </button>
-        <!-- Hidden/Compatible elements -->
-        <span id="headerTriggerText" class="hidden">GRAVAR VÍDEO</span>
-
-        <!-- Take Photo button -->
-        <button id="btnTakePhoto" class="w-12 h-12 rounded-full bg-black/45 backdrop-blur-md border border-white/20 flex items-center justify-center text-white active:scale-95 hover:scale-105 transition-all text-xl shadow-lg" title="TIRAR FOTO">
-            📸
-        </button>
-
-        <!-- Settings drawer trigger -->
-        <button id="btnToggleSettings" class="w-12 h-12 rounded-full bg-black/45 backdrop-blur-md border border-white/20 flex items-center justify-center text-white active:scale-95 hover:scale-105 transition-all text-xl shadow-lg" title="Configurações">
-            ⚙️
-        </button>
-    </div>
-
-    <!-- Dynamic Settings overlay panel (Controls and telemetry) -->
-    <div id="controlsBoard" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-5 shadow-2xl relative">
-            <div class="flex items-center justify-between border-b border-slate-850 pb-3">
-                 <h3 class="text-sm font-bold text-white uppercase tracking-wider font-mono">⚙️ Configurações</h3>
-                 <button id="btnCloseSettings" class="text-slate-400 hover:text-white text-lg active:scale-95 transition">❌</button>
+        <!-- Standalone Live composition section -->
+        <div id="captureArea" class="hidden relative w-full aspect-[9/16] bg-black rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-800">
+            <!-- 3s Countdown Viewport overlay -->
+            <div id="countdownOverlay" class="absolute inset-0 bg-black/90 flex flex-col items-center justify-center z-30 hidden">
+                <div id="countdownNumber" class="text-8xl font-black text-indigo-500 animate-ping">3</div>
+                <p class="text-sm font-semibold tracking-widest text-slate-400 uppercase mt-4">Prepare-se para o vídeo...</p>
             </div>
+
+            <!-- Mirrored Hidden Video component (non-hidden offscreen for iOS Safari render refresh compatibility) -->
+            <video id="liveVideo" autoplay playsinline muted style="position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0.01; pointer-events: none;"></video>
             
-            <!-- Voice audio status/meter -->
-            <div class="space-y-1.5">
-                 <div class="flex items-center justify-between text-[11px]">
-                     <div class="flex items-center space-x-1.5">
-                         <span id="audioLedIndicator">🟢</span>
-                         <span class="text-slate-300 font-bold font-mono text-[10px] uppercase tracking-wider">Nível de Voz:</span>
-                     </div>
-                     <span class="text-[9px] text-slate-500 uppercase tracking-widest font-mono">Ativo</span>
-                 </div>
-                 <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-850/80">
-                      <div id="audioLevelMeter" class="bg-emerald-500 h-full transition-all duration-75" style="width: 0%"></div>
-                 </div>
+            <!-- Target Canvas -->
+            <canvas id="compositeCanvas" class="w-full h-full object-cover block"></canvas>
+
+            <!-- Status Indicator Overlay Badge -->
+            <div id="statusBadge" class="absolute top-4 left-4 inline-flex items-center space-x-1.5 bg-red-600 text-[10px] font-bold uppercase py-1 px-2.5 rounded-full text-white tracking-widest shadow-lg hidden">
+                <span class="h-2 w-2 rounded-full bg-white animate-pulse"></span>
+                <span>GRAVANDO</span>
             </div>
 
-            <!-- Multi video input devices cycler selector box -->
-            <div id="cameraSelectorBox" class="bg-slate-950 border border-slate-850 rounded-2xl p-3 flex-col space-y-1.5 hidden">
-                <label class="text-[10px] text-slate-400 font-black tracking-wider uppercase font-mono">Selecione Outra Câmera:</label>
-                <select id="videoSelect" class="bg-slate-900 text-slate-300 rounded-xl border border-slate-800 text-xs py-2 px-2.5 outline-none w-full focus:border-indigo-500 transition-all">
+            <!-- Real-time Recording Counter Badge -->
+            <div id="timerBadge" class="absolute top-4 right-4 bg-slate-950/80 backdrop-blur-sm text-xs font-mono py-1 px-2.5 rounded-full text-white tracking-wider flex items-center space-x-1 border border-slate-800">
+                <span class="text-red-500 animate-pulse">●</span>
+                <span id="recordingTimer">00:00</span>
+                <span class="text-slate-500 font-bold">/ 01:20</span>
+            </div>
+        </div>
+
+        <!-- Recorded Video Preview Section (For direct viewing & Gallery Saving) -->
+        <div id="recordedPreviewSection" class="hidden mt-6 p-5 bg-slate-900 border border-emerald-500/30 rounded-2xl space-y-4 shadow-xl">
+             <div class="text-center">
+                 <span class="inline-flex items-center gap-1.5 text-[10px] bg-emerald-950/80 border border-emerald-500/40 font-bold uppercase py-1 px-3.5 rounded-full text-emerald-400 tracking-widest font-mono">
+                     🟢 Gravação Pronta!
+                 </span>
+             </div>
+             
+             <!-- Aspect ratio correct visual feedback player -->
+             <div class="rounded-xl overflow-hidden border border-slate-800 bg-black aspect-[9/16] max-h-80 mx-auto shadow-inner relative">
+                 <video id="recordedVideoPlayer" controls class="w-full h-full object-cover"></video>
+             </div>
+
+             <!-- Web Share / Direct Save & Backup File Download triggers -->
+             <div class="space-y-2.5">
+                 <button id="btnSaveToPhone" class="w-full bg-blue-600 hover:bg-blue-500 active:scale-97 transition-all text-white py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-blue-500/20">
+                     <span>📥 SALVAR NO CELULAR</span>
+                 </button>
+                 <button id="btnSaveToGallery" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-97 transition-all text-white py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/20">
+                     <span>📱 SALVAR NO iOS</span>
+                 </button>
+                 <button id="btnResetAndRecordAgain" class="w-full bg-red-500 hover:bg-red-400 active:scale-97 transition-all text-white py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-red-500/20">
+                     <span>🔄 GRAVAR NOVAMENTE</span>
+                 </button>
+                 <button id="btnDownloadFile" class="w-full bg-slate-950 hover:bg-slate-850 active:scale-97 transition-all text-slate-300 py-2.5 px-4 rounded-xl font-semibold text-xs flex items-center justify-center space-x-2 border border-slate-800">
+                     <span>📥 Baixar Arquivo de Vídeo</span>
+                 </button>
+             </div>
+             
+
+        </div>
+
+        <!-- Controls Board -->
+        <div id="controlsBoard" class="hidden mt-6 space-y-4">
+            <!-- Camera & Audio Status checks -->
+            <div class="bg-slate-900/50 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between text-xs">
+                <div class="flex items-center space-x-2">
+                    <span class="text-emerald-500" id="audioLedIndicator">🟢</span>
+                    <span class="text-slate-300 font-medium font-mono text-[11px]">Nível de Voz:</span>
+                </div>
+                <div class="w-24 bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div id="audioLevelMeter" class="bg-emerald-500 h-full transition-all duration-75" style="width: 0%"></div>
+                </div>
+                <button id="btnToggleMirror" class="bg-slate-800 text-[11px] text-slate-300 px-2 py-1 rounded border border-slate-700 hover:bg-slate-700">
+                    Espelhar: Ativo
+                </button>
+            </div>
+
+            <!-- Available Video devices cycler -->
+            <div class="bg-indigo-950/30 border border-slate-800/80 rounded-xl p-3 flex flex-col space-y-1.5 hidden" id="cameraSelectorBox">
+                <label class="text-[10px] text-slate-400 font-bold tracking-wider uppercase">Selecione Outra Câmera:</label>
+                <select id="videoSelect" class="bg-slate-950 text-slate-300 rounded border border-slate-800 text-xs py-1.5 px-2 outline-none w-full">
                 </select>
             </div>
 
-            <!-- Performance Telemetry HUD details -->
-            <div id="perfTelemetryHUD" class="bg-slate-950/40 rounded-2xl p-3.5 border border-slate-850/80 flex flex-col space-y-1 text-xs font-mono text-slate-400">
+            <!-- Performance Telemetry HUD for WebM/PNG overlay renderer -->
+            <div id="perfTelemetryHUD" class="bg-slate-900/50 rounded-xl p-3 border border-slate-800/80 flex flex-col space-y-1.5 text-[11px] font-mono text-slate-400">
                 <div class="flex items-center justify-between">
-                    <span class="text-[10px] uppercase font-bold tracking-widest text-slate-500">Performance do Layout:</span>
+                    <span>Performance do Layout:</span>
                     <span id="perfTelemetryStatus" class="font-bold text-teal-400">Medindo...</span>
                 </div>
-                <div id="perfTelemetryDetails" class="text-[10px] text-slate-500 leading-normal font-sans">
+                <div id="perfTelemetryDetails" class="text-[10px] text-slate-500 leading-normal">
                     Medindo frame rendering rate de animações...
                 </div>
             </div>
 
-            <!-- Instruction steps -->
-            <div class="bg-indigo-950/15 border border-indigo-900/30 rounded-2xl p-4 text-center text-xs text-slate-300 leading-relaxed font-sans max-h-40 overflow-y-auto">
-                 <div class="text-[11px] text-indigo-400 font-black uppercase tracking-widest mb-1 font-mono">Como funciona no celular?</div>
-                 1. Toque em \"Permitir Câmera e Áudio\".<br>2. Use o celular na posição vertical.<br>3. Aguarde os 3 segundos de contagem regressiva.<br>4. O vídeo final com o layout aprovado (35% superior/inferior) será salvo nas suas fotos/arquivos diretamente!
+            <!-- Dynamic instructions and status indicators -->
+            <div class="bg-indigo-950/20 border border-slate-850 rounded-xl p-3.5 text-center">
+                <span class="inline-flex h-2 w-2 rounded-full bg-red-550 animate-ping mr-1.5"></span>
+                <span class="text-xs text-slate-300 font-medium">
+                    Use o botão <strong class="text-red-450 uppercase tracking-widest font-mono">GRAVAR VÍDEO</strong> no cabeçalho superior do aplicativo para gerenciar seu depoimento.
+                </span>
+                <div class="text-[10px] text-slate-500 mt-1.5">
+                    O download começará automaticamente logo após você pressionar o botão de parar.
+                </div>
             </div>
-            
-            <button id="btnCloseSettingsPanel" class="w-full bg-slate-800 hover:bg-slate-700 active:scale-95 text-xs font-bold text-white py-3.5 rounded-xl transition border border-slate-700 font-mono text-center uppercase tracking-wider shadow-lg">
-                 Confirmar
-            </button>
         </div>
-    </div>
 
-    <!-- Recorded Video Preview Section (Modal view) -->
-    <div id="recordedPreviewSection" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/92 backdrop-blur-md overflow-y-auto">
-         <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative my-auto">
-              <div class="text-center">
-                  <span class="inline-flex items-center gap-1.5 text-[10px] bg-emerald-950/80 border border-emerald-500/40 font-bold uppercase py-1.5 px-3.5 rounded-full text-emerald-400 tracking-widest font-mono">
-                      🟢 Gravação Pronta!
-                  </span>
-              </div>
-              
-              <div class="rounded-2xl overflow-hidden border border-slate-800 bg-black aspect-[9/16] max-h-72 mx-auto shadow-inner relative">
-                  <video id="recordedVideoPlayer" autoplay loop controls class="w-full h-full object-cover"></video>
-              </div>
+        <!-- Explainer Instructions Footer -->
+        <footer class="mt-8 pt-4 border-t border-slate-900 text-center space-y-1.5">
+            <div class="text-[11px] text-indigo-400 font-bold uppercase tracking-wider">Como funciona no celular?</div>
+            <p class="text-xs text-slate-500 leading-relaxed max-w-xs mx-auto">
+                1. Toque em \"Permitir Câmera e Áudio\".<br>2. Use o celular na posição vertical.<br>3. Aguarde os 3 segundos de contagem regressiva.<br>4. O vídeo final com o layout aprovado (35% superior/inferior) será salvo nas suas fotos/arquivos diretamente!
+            </p>
+        </footer>
 
-              <div class="space-y-2">
-                  <button id="btnSaveToPhone" class="w-full bg-blue-600 hover:bg-blue-500 active:scale-95 transition text-white py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 font-mono tracking-wide">
-                      📥 <span>📥 SALVAR NO CELULAR</span>
-                  </button>
-                  <button id="btnSaveToGallery" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition text-white py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/30 font-mono tracking-wide">
-                      📱 <span>📱 SALVAR NO iOS</span>
-                  </button>
-                  <button id="btnResetAndRecordAgain" class="w-full bg-slate-850 hover:bg-slate-800 active:scale-95 transition text-slate-300 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border border-slate-755 font-mono tracking-wide">
-                      🔄 <span>🔄 GRAVAR NOVAMENTE</span>
-                  </button>
-                  <button id="btnDownloadFile" class="w-full bg-slate-950 hover:bg-slate-900 active:scale-95 transition text-slate-400 py-2.5 px-4 rounded-xl font-semibold text-[11px] flex items-center justify-center gap-2 border border-slate-850 font-mono tracking-wide">
-                      📥 <span>📥 Baixar Arquivo de Vídeo</span>
-                  </button>
-              </div>
-         </div>
-    </div>
-
-    <!-- Completion custom modal -->
-    <div id="completionModal" class="fixed inset-0 flex items-center justify-center bg-slate-950/85 backdrop-blur-sm z-50 p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-5 shadow-2xl text-center">
-            <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto text-3xl font-bold">
-                ✓
+        <!-- Beautiful custom completion modal replacement of default alert -->
+        <div id="completionModal" class="fixed inset-0 flex items-center justify-center bg-slate-950/85 backdrop-blur-sm z-50 p-4 hidden">
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full space-y-5 shadow-2xl text-center">
+                <div class="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto text-3xl font-bold">
+                    ✓
+                </div>
+                <div class="space-y-1">
+                    <h3 class="text-base font-bold text-white uppercase tracking-wider font-mono">Gravação Concluída!</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Assista ao seu depoimento logo abaixo e clique em <strong>'SALVAR NO iOS'</strong> para guardá-lo no celular!
+                    </p>
+                </div>
+                <button id="btnModalClose" class="w-full bg-slate-800 hover:bg-slate-700 active:scale-97 text-xs font-bold text-white py-3 px-4 rounded-xl transition border border-slate-700">
+                    Fechar
+                </button>
             </div>
-            <div class="space-y-1">
-                <h3 class="text-base font-bold text-white uppercase tracking-wider font-mono">Gravação Concluída!</h3>
-                <p class="text-xs text-slate-300 leading-relaxed font-sans">
-                    Assista ao seu depoimento logo abaixo e clique em <strong>'SALVAR NO iOS'</strong> para guardá-lo no celular!
-                </p>
-            </div>
-            <button id="btnModalCloseAlert" class="w-full bg-slate-800 hover:bg-slate-700 active:scale-95 text-xs font-bold text-white py-3 px-4 rounded-xl transition border border-slate-700">
-                Fechar
-            </button>
         </div>
-    </div>
+
+    </main>                <button id="btnModalClose" class="w-full bg-slate-800 hover:bg-slate-700 active:scale-97 text-xs font-bold text-white py-3 px-4 rounded-xl transition border border-slate-700">
+                    Fechar
+                </button>
+            </div>
+        </div>
+
+    </main>
 
     <!-- Script Layer -->
     <script>
         // Paths pointing to files under the assets folder in the export package
-        const TOP_OVERLAY_PATH = "./assets/arte_superior.png";
+        const TOP_OVERLAY_PATH = "";
         const BOTTOM_OVERLAY_PATH = "";
         const FULLSCREEN_OVERLAY_PATH = "./assets/arte_tela_cheia.webm";
-        const TOP_ADJUSTMENT = {"fitMode":"stretch","offsetY":-16,"offsetX":33,"scale":1};
+        const TOP_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
         const BOTTOM_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
-        const FULLSCREEN_ADJUSTMENT = {"fitMode":"contain","offsetY":14,"offsetX":0,"scale":1};
+        const FULLSCREEN_ADJUSTMENT = {"fitMode":"stretch","offsetY":26,"offsetX":-2,"scale":1};
 
         // UI State variables
         let isMirrored = true;
@@ -1058,6 +1053,8 @@
                     const modal = document.getElementById('completionModal');
                     if (modal) {
                         modal.classList.remove('hidden');
+                    } else {
+                        alert("Gravação concluída! Assista ao seu depoimento logo abaixo e clique em 'SALVAR NO iOS' para guardá-lo no celular!");
                     }
                 };
 
@@ -1067,7 +1064,7 @@
                 // Update styling control board
                 statusBadge.classList.remove('hidden');
                 triggerText.textContent = "PARAR GRAVAÇÃO";
-                triggerIcon.className = "w-8 h-8 bg-slate-100 block rounded-lg transition-all duration-300";
+                triggerIcon.className = "h-3 w-3 bg-white block rounded-none";
                 triggerIcon.classList.remove('animate-ping');
                 const takePhotoBtn = document.getElementById('btnTakePhoto');
                 if (takePhotoBtn) takePhotoBtn.classList.add('hidden');
@@ -1101,7 +1098,7 @@
                 
                 statusBadge.classList.add('hidden');
                 triggerText.textContent = "GRAVAR VÍDEO";
-                triggerIcon.className = "w-full h-full rounded-full bg-red-600 transition-all duration-300 block";
+                triggerIcon.className = "h-3 w-3 rounded-full bg-white block animate-ping";
                 const takePhotoBtn = document.getElementById('btnTakePhoto');
                 if (takePhotoBtn) takePhotoBtn.classList.remove('hidden');
             }
@@ -1143,9 +1140,6 @@
             document.getElementById('captureArea').classList.add('hidden');
             document.getElementById('controlsBoard').classList.add('hidden');
             
-            const bottomDock = document.getElementById('bottomDock');
-            if (bottomDock) bottomDock.classList.add('hidden');
-            
             // NÃO ocultar o preview do vídeo gravado (recordedPreviewSection) e NÃO exibir o overlay de permissões se o vídeo de gravação estiver pronto
             const previewSec = document.getElementById('recordedPreviewSection');
             const hasPreview = previewSec && !previewSec.classList.contains('hidden');
@@ -1161,56 +1155,12 @@
 
         // Global constant trick for width reference in drawing helper
         const width = 1080;
-        let currentDeviceIndex = 0;
-        let videoDevices = [];
 
         // Dynamic event listeners for maximum iOS Safari gesture propagation compatibility
         document.getElementById('btnRequestCamera').addEventListener('click', requestCameraAccess);
         document.getElementById('btnToggleMirror').addEventListener('click', toggleMirror);
         document.getElementById('btnHeaderTriggerRecording').addEventListener('click', toggleRecording);
         document.getElementById('videoSelect').addEventListener('change', (e) => switchCamera(e.target.value));
-        
-        // Settings panel toggles
-        const settingsBoard = document.getElementById('controlsBoard');
-        const settingsTrigger = document.getElementById('btnToggleSettings');
-        if (settingsTrigger && settingsBoard) {
-            settingsTrigger.addEventListener('click', () => {
-                settingsBoard.classList.toggle('hidden');
-            });
-        }
-        const closeSettingsBtn = document.getElementById('btnCloseSettings');
-        if (closeSettingsBtn && settingsBoard) {
-            closeSettingsBtn.addEventListener('click', () => {
-                settingsBoard.classList.add('hidden');
-            });
-        }
-        const confirmSettingsBtn = document.getElementById('btnCloseSettingsPanel');
-        if (confirmSettingsBtn && settingsBoard) {
-            confirmSettingsBtn.addEventListener('click', () => {
-                settingsBoard.classList.add('hidden');
-            });
-        }
-
-        // Flip alternate camera cycle mechanism
-        const btnFlip = document.getElementById('btnFlipCamera');
-        if (btnFlip) {
-            btnFlip.addEventListener('click', async () => {
-                try {
-                    const devices = await navigator.mediaDevices.enumerateDevices();
-                    const activeVideoDevices = devices.filter(d => d.kind === 'videoinput');
-                    if (activeVideoDevices.length > 1) {
-                        currentDeviceIndex = (currentDeviceIndex + 1) % activeVideoDevices.length;
-                        const nextDevice = activeVideoDevices[currentDeviceIndex];
-                        await switchCamera(nextDevice.deviceId);
-                        const selector = document.getElementById('videoSelect');
-                        if (selector) selector.value = nextDevice.deviceId;
-                    }
-                } catch(err) {
-                    console.warn("Falha de alternância de câmera:", err);
-                }
-            });
-        }
-
         document.getElementById('btnResetAndRecordAgain').addEventListener('click', async () => {
             const videoPlayer = document.getElementById('recordedVideoPlayer');
             const previewSec = document.getElementById('recordedPreviewSection');
@@ -1229,8 +1179,7 @@
             stopCameraAccess();
             await requestCameraAccess();
         });
-
-        const closeCompletionModal = () => {
+        document.getElementById('btnModalClose').addEventListener('click', () => {
             const modal = document.getElementById('completionModal');
             if (modal) {
                 modal.classList.add('hidden');
@@ -1240,13 +1189,7 @@
                 headerTitle.textContent = "SALVE E COMPARTILHE SEU ENGAJAMENTO";
             }
             stopCameraAccess();
-        };
-
-        document.getElementById('btnModalClose').addEventListener('click', closeCompletionModal);
-        const modalAlertClose = document.getElementById('btnModalCloseAlert');
-        if (modalAlertClose) {
-            modalAlertClose.addEventListener('click', closeCompletionModal);
-        }
+        });
 
         document.getElementById('btnTakePhoto').addEventListener('click', () => {
             trackPixelEvent('TirarFoto');
