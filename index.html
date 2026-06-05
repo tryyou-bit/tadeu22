@@ -87,10 +87,10 @@
              <!-- Web Share / Direct Save & Backup File Download triggers -->
              <div class="space-y-2.5">
                  <button id="btnSaveToPhone" class="w-full bg-blue-600 hover:bg-blue-500 active:scale-97 transition-all text-white py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-blue-500/20">
-                     <span>📥 SALVAR NO CELULAR</span>
+                     <span>📥 SALVAR NO CELULAR ANDROID</span>
                  </button>
                  <button id="btnSaveToGallery" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-97 transition-all text-white py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/20">
-                     <span>📱 SALVAR NO iOS</span>
+                     <span>📱 SALVAR NO iPhone</span>
                  </button>
                  <button id="btnResetAndRecordAgain" class="w-full bg-red-500 hover:bg-red-400 active:scale-97 transition-all text-white py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-red-500/20">
                       <span>🔄 GRAVAR NOVAMENTE</span>
@@ -168,7 +168,7 @@
                 <div class="space-y-1">
                     <h3 class="text-base font-bold text-white uppercase tracking-wider font-mono">Gravação Concluída!</h3>
                     <p class="text-xs text-slate-300 leading-relaxed">
-                        Assista ao seu depoimento logo abaixo e clique em <strong>'SALVAR NO iOS'</strong> para guardá-lo no celular!
+                        Assista ao seu depoimento logo abaixo e clique em <strong>'SALVAR NO iPhone'</strong> para guardá-lo no celular!
                     </p>
                 </div>
                 <button id="btnModalClose" class="w-full bg-slate-800 hover:bg-slate-700 active:scale-97 text-xs font-bold text-white py-3 px-4 rounded-xl transition border border-slate-700">
@@ -182,12 +182,12 @@
     <!-- Script Layer -->
     <script>
         // Paths pointing to files under the assets folder in the export package
-        const TOP_OVERLAY_PATH = "";
+        const TOP_OVERLAY_PATH = "./assets/arte_superior.png";
         const BOTTOM_OVERLAY_PATH = "./assets/arte_inferior.png";
-        const FULLSCREEN_OVERLAY_PATH = "./assets/arte_tela_cheia.webm";
-        const TOP_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
+        const FULLSCREEN_OVERLAY_PATH = "";
+        const TOP_ADJUSTMENT = {"fitMode":"contain","offsetY":-16,"offsetX":0,"scale":1};
         const BOTTOM_ADJUSTMENT = {"fitMode":"contain","offsetY":19,"offsetX":0,"scale":1};
-        const FULLSCREEN_ADJUSTMENT = {"fitMode":"contain","offsetY":0,"offsetX":0,"scale":1};
+        const FULLSCREEN_ADJUSTMENT = {"fitMode":"stretch","offsetY":0,"offsetX":0,"scale":1};
 
         // UI State variables
         let isMirrored = true;
@@ -1057,7 +1057,7 @@
                     if (modal) {
                         modal.classList.remove('hidden');
                     } else {
-                        alert("Gravação concluída! Assista ao seu depoimento logo abaixo e clique em 'SALVAR NO iOS' para guardá-lo no celular!");
+                        alert("Gravação concluída! Assista ao seu depoimento logo abaixo e clique em 'SALVAR NO iPhone' para guardá-lo no celular!");
                     }
                 };
 
